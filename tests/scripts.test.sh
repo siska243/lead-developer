@@ -85,7 +85,6 @@ bash "$REPO/scripts/install.sh" --target "$T" --dry-run >/dev/null
 check "dry run changes nothing" test ! -e "$T/siska-lead-developer"
 bash "$REPO/scripts/install.sh" --target "$T" >/dev/null
 check "install copies main skill" test -f "$T/siska-lead-developer/references/mcp.md"
-check "install copies mcp entry skill" test -f "$T/siska-lead-mcp/SKILL.md"
 check "dev files not shipped" test ! -e "$T/siska-lead-developer/tests"
 bash "$REPO/scripts/install.sh" --target "$T" >/dev/null 2>&1 && s=0 || s=$?
 assert_status "existing install is not overwritten" 2 "$s"

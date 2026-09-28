@@ -1,6 +1,6 @@
 # MCP templates
 
-Starting point for `/siska-lead-mcp` when the project is Node/TypeScript or needs a standalone MCP process.
+Starting point for MCP integration (`references/mcp.md`) when the project is Node/TypeScript or needs a standalone MCP process.
 For Laravel, Symfony or Python, use the framework's official SDK (see `references/mcp.md`) and apply the same structure.
 
 ```text

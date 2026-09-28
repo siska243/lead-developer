@@ -1,7 +1,9 @@
 # Claude Code compatibility
 
-Install: `bash scripts/install.sh --target ~/.claude/skills` (user) or `--target .claude/skills` (project).
-`/siska-lead-developer` and `/siska-lead-mcp` then become available.
+Install as a plugin (see README): `claude plugin marketplace add <repo or path>` then
+`claude plugin install siska-lead-developer@siska`. Commands: `/siska-lead-developer:help`.
+The plugin manifest (`.claude-plugin/`) and the command skills (`skills/`) are this compatibility layer;
+they use `${CLAUDE_SKILL_DIR}` to reach the core files.
 
 ## Native capabilities
 | Skill need | Claude Code |
