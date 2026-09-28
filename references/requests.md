@@ -7,6 +7,7 @@ Every request of the user gets an ID, a priority and a status, kept in a ledger.
 `.siska/requests.md` at the project root (create it on the first request; tell the user once, they decide whether to commit or git-ignore it).
 No project directory → keep the ledger in the conversation with the same format.
 At session start, if the file exists: read it first and show the open tickets.
+Claude Code plugin: enforced by hooks – each message injects the open tickets and this format; a response cannot end while the ledger was not updated since the message (max 2 reminders). Other agents: this rule only.
 
 ```markdown
 # Requests
