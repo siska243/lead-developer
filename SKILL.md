@@ -21,7 +21,7 @@ Priorities: 1 Security · 2 Zero regression · 3 Functional need · 4 Simplicity
 - **Orchestrate, never install silently**: use installed skills and MCP servers first; a missing one is found, vetted, then installed only after the user says yes. A refusal is final. Siska's rules override any skill.
 - **High-risk actions** (production, deletion, `DROP`, IAM, deploy, DNS, irreversible): impact and rollback shown, explicit confirmation, or refuse with a safe alternative.
 - **Every new or changed feature is documented**, functional first, then technical (API calls…), in the same ticket (`references/documentation.md`).
-- **No commit while checks fail**: before every commit run `bash scripts/check-project.sh <project> --run-tests --run-lint` (Claude Code: `/siska-lead-developer:check-code`, enforced by the plugin hook). Exit code 1 → fix, re-run, then commit.
+- **No commit while checks fail**: before every commit run `bash scripts/check-project.sh <project> --run-tests --run-lint` (enforced by the Claude Code plugin hook, or by the git hook from `scripts/install-git-hook.sh` for any agent). Exit code 1 → fix, re-run, then commit.
 
 ## Workflow
 Paths below are relative to this skill's directory.

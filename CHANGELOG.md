@@ -2,6 +2,14 @@
 
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), versions: [SemVer](https://semver.org/).
 
+## [1.7.0] - 2026-09-28
+### Added
+- Commands for every Skills-compatible agent: `install.sh` generates `siska-audit-route`, `siska-check-code`, `siska-document`, `siska-skills`, `siska-tickets`, `siska-mcp`, `siska-help` with absolute paths and standard frontmatter only (recognized for Codex, GitHub Copilot, OpenCode).
+- `scripts/install-git-hook.sh`: native git pre-commit commit gate for any agent; never overwrites an existing hook or hook manager; harmless if the skill is later removed.
+- `compat/README.md`: install, skills directory, command call and commit gate per agent.
+### Changed
+- Commit gate message no longer names one agent.
+
 ## [1.6.0] - 2026-09-28
 ### Added
 - Skill and MCP orchestration (`references/orchestration.md`): needed capabilities → installed → search (skills.sh, agent marketplaces, official MCP Registry) → vetting → consent → install; refusal is final; Siska's rules override any skill.

@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
-# Install the siska-lead-developer skill into a Skills directory of a
-# Skills-compatible agent. Claude Code users: prefer the plugin (README),
-# which also provides the /siska-lead-developer:<command> shortcuts.
+# Install the siska-lead-developer skill and its commands (siska-audit-route,
+# siska-check-code, …) into the skills directory of a Skills-compatible agent
+# (Codex, GitHub Copilot, OpenCode… read ~/.agents/skills). Commands are
+# generated from skills/ with absolute paths, so they work in any agent.
+# Claude Code users: prefer the plugin (README).
 #
 # Usage: bash install.sh [--target DIR] [--link] [--force] [--dry-run]
 #        bash install.sh --uninstall [--target DIR] [--dry-run]
@@ -34,7 +36,7 @@ while [ $# -gt 0 ]; do
     --force) FORCE=1 ;;
     --dry-run) DRY=1 ;;
     --uninstall) UNINSTALL=1 ;;
-    -h|--help) sed -n '2,19p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
+    -h|--help) sed -n '2,21p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
     *) sld_die "unknown option: $1 (see --help)" ;;
   esac
   shift
@@ -46,11 +48,27 @@ MAIN_NAME="siska-lead-developer"
 LEGACY_NAME="siska-lead-mcp"
 # What a copy install ships (development files like tests/ stay in the repo).
 MAIN_CONTENT="SKILL.md README.md LICENSE CHANGELOG.md references scripts templates compat"
+# Portable commands generated from skills/<cmd>/SKILL.md as siska-<cmd>.
+COMMANDS=()
+for d in "$REPO_DIR"/skills/*/; do [ -f "$d/SKILL.md" ] && COMMANDS+=("siska-$(basename "$d")"); done
+ALL_NAMES=("$MAIN_NAME" ${COMMANDS[@]+"${COMMANDS[@]}"})
+
+# generate_command SRC_SKILL_MD DEST_DIR MAIN_PATH: portable copy of a command skill.
+# Replaces agent-specific placeholders; keeps only standard frontmatter fields.
+# shellcheck disable=SC2016 # the ${…} and $ARGUMENTS below are literal text to replace
+generate_command() {
+  mkdir -p "$2"
+  sed -e '1,/^---$/!b' -e 's/^name: /name: siska-/' -e '/^disable-model-invocation:/d' -e '/^argument-hint:/d' "$1" |
+    sed -e 's|\${CLAUDE_SKILL_DIR}/\.\./\.\.|'"$3"'|g' \
+        -e 's|^Arguments: `\$ARGUMENTS`$|Arguments: what the user wrote after the skill name.|' \
+        -e 's|/siska-lead-developer:siska-lead-developer|siska-lead-developer|g' \
+        -e 's|/siska-lead-developer:|siska-|g' >"$2/SKILL.md"
+}
 
 if [ $UNINSTALL -eq 1 ]; then
   [ $LINK -eq 0 ] && [ $FORCE -eq 0 ] || sld_die "--uninstall cannot be combined with --link or --force"
   sld_info "target:  $TARGET"
-  for name in "$MAIN_NAME" "$LEGACY_NAME"; do
+  for name in "${ALL_NAMES[@]}" "$LEGACY_NAME"; do
     path="$TARGET/$name"
     if [ -L "$path" ]; then
       sld_info "remove:  $path (symlink -> $(readlink "$path")); the linked repository is not touched"
@@ -66,7 +84,7 @@ if [ $UNINSTALL -eq 1 ]; then
     fi
   done
   if [ $DRY -eq 1 ]; then sld_info "dry run: nothing changed"; exit 0; fi
-  for name in "$MAIN_NAME" "$LEGACY_NAME"; do
+  for name in "${ALL_NAMES[@]}" "$LEGACY_NAME"; do
     { [ -e "$TARGET/$name" ] || [ -L "$TARGET/$name" ]; } && sld_die "verification failed: $TARGET/$name still present"
   done
   sld_info "uninstalled. Backups ($TARGET/*.bak.*), if any, were kept. Restart your agent session."
@@ -77,7 +95,9 @@ fi
 [ -f "$REPO_DIR/SKILL.md" ] || sld_die "SKILL.md not found in $REPO_DIR"
 TIMESTAMP="$(date +%Y%m%d%H%M%S)"
 conflicts=()
-{ [ -e "$TARGET/$MAIN_NAME" ] || [ -L "$TARGET/$MAIN_NAME" ]; } && conflicts+=("$MAIN_NAME")
+for name in "${ALL_NAMES[@]}"; do
+  { [ -e "$TARGET/$name" ] || [ -L "$TARGET/$name" ]; } && conflicts+=("$name")
+done
 
 # Claude Code reads .claude/skills, not ~/.agents/skills, and has its own plugin install.
 CLAUDE_HOME="${SLD_CLAUDE_HOME:-$HOME/.claude}"
@@ -104,6 +124,7 @@ for name in ${conflicts[@]+"${conflicts[@]}"}; do
   fi
 done
 sld_info "install: $TARGET/$MAIN_NAME"
+sld_info "install: ${#COMMANDS[@]} commands (${COMMANDS[*]})"
 [ $DRY -eq 1 ] && { sld_info "dry run: nothing changed"; exit 0; }
 
 # 3. Modification
@@ -119,7 +140,17 @@ else
   done
 fi
 
+TARGET_ABS="$(cd "$TARGET" && pwd)"
+for cmd in ${COMMANDS[@]+"${COMMANDS[@]}"}; do
+  generate_command "$REPO_DIR/skills/${cmd#siska-}/SKILL.md" "$TARGET/$cmd" "$TARGET_ABS/$MAIN_NAME"
+done
+
 # 4. Verification
 [ -f "$TARGET/$MAIN_NAME/SKILL.md" ] || sld_die "verification failed: $TARGET/$MAIN_NAME/SKILL.md missing"
 [ -f "$TARGET/$MAIN_NAME/references/workflow.md" ] || sld_die "verification failed: references missing"
+for cmd in ${COMMANDS[@]+"${COMMANDS[@]}"}; do
+  grep -q "^name: $cmd\$" "$TARGET/$cmd/SKILL.md" 2>/dev/null || sld_die "verification failed: $TARGET/$cmd/SKILL.md"
+  # shellcheck disable=SC2016 # literal placeholders searched for
+  ! grep -q 'CLAUDE_SKILL_DIR\|\$ARGUMENTS' "$TARGET/$cmd/SKILL.md" || sld_die "verification failed: agent-specific placeholder left in $cmd"
+done
 sld_info "installed and verified. Restart your agent session to load the skills."

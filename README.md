@@ -113,15 +113,24 @@ claude plugin uninstall siska-lead-developer@siska
 claude plugin marketplace remove siska      # retire aussi le catalogue
 ```
 
-## Autres agents (Codex, Gemini CLI, Copilot CLI…)
-
-Seul le skill principal est installé, sans les commandes `:xxx` qui sont propres à Claude Code.
-**Ne pas utiliser ce script pour Claude Code** : utilise le plugin. Le script refuse d'installer dans `.claude/skills` si le plugin y est déjà, pour éviter un doublon.
+## Codex, GitHub Copilot, OpenCode et autres agents
 
 ```bash
-bash scripts/install.sh                      # dans ~/.agents/skills (--target DIR pour un autre dossier)
-bash scripts/install.sh --uninstall          # désinstaller
+git clone https://github.com/siska243/lead-developer && cd lead-developer
+bash scripts/install.sh                               # dans ~/.agents/skills
+bash scripts/install-git-hook.sh /chemin/du/projet    # bloque les commits si les contrôles échouent
 ```
+
+- Le skill principal et ses commandes sont installés sous les noms `siska-audit-route`, `siska-check-code`, `siska-document`, `siska-skills`, `siska-tickets`, `siska-mcp` et `siska-help`.
+- Pour appeler une commande :
+  - Codex : `$siska-check-code`, ou `/skills` ;
+  - Copilot : choisis ou cite `siska-check-code`.
+- Pour un seul projet : `bash scripts/install.sh --target /chemin/du/projet/.agents/skills`.
+- Désinstaller : `bash scripts/install.sh --uninstall` et `bash scripts/install-git-hook.sh /chemin/du/projet --uninstall`.
+- Le hook git bloque tous les commits du dépôt, que ce soit un agent ou toi qui committe. Il ne remplace jamais un hook existant, ni husky ou lefthook : dans ce cas, il affiche la ligne à ajouter.
+- Détails par agent : `compat/README.md`.
+
+**Ne pas utiliser ce script pour Claude Code** : utilise le plugin. Le script refuse d'installer dans `.claude/skills` si le plugin y est déjà, pour éviter un doublon.
 
 Options : `--link` (lien symbolique), `--force` (remplace en gardant une sauvegarde), `--dry-run` (aperçu).
 

@@ -1,16 +1,16 @@
 # Compatibility layers
 
 The core skill (`SKILL.md`, `references/`, `scripts/`, `templates/`) is agent-neutral.
-Agent-specific knowledge lives here, one file per agent:
+Agent-specific details live here.
 
-| File | Agent |
-|------|-------|
-| `claude-code.md` | Claude Code |
+| Agent | Install | Skills directory | Call a command | Commit gate |
+|-------|---------|------------------|----------------|-------------|
+| Claude Code | plugin (`/plugin install siska-lead-developer@siska`) | plugin | `/siska-lead-developer:check-code` | plugin hook (automatic) |
+| Codex | `bash scripts/install.sh` | `~/.agents/skills`, repo `.agents/skills` | `$siska-check-code` or `/skills` | `bash scripts/install-git-hook.sh <project>` |
+| GitHub Copilot | `bash scripts/install.sh` | `~/.agents/skills`, `~/.copilot/skills`, repo `.github/skills` / `.agents/skills` | select or mention `siska-check-code` | `bash scripts/install-git-hook.sh <project>` |
+| OpenCode and other agents reading `~/.agents/skills` | `bash scripts/install.sh` | `~/.agents/skills` | the agent's way to call a skill by name | `bash scripts/install-git-hook.sh <project>` |
+| Any other Skills-compatible agent | `bash scripts/install.sh --target <its skills dir>` | its own | its own | `bash scripts/install-git-hook.sh <project>` |
 
-To add an agent: create `<agent>.md` with its skills directory, plan/team mode equivalents, and a capability → tool mapping. Do not edit the core for one agent.
+`install.sh` generates the commands (`siska-audit-route`, `siska-check-code`, …) from `skills/` with absolute paths and without agent-specific placeholders, so they run in any agent. The git hook blocks every commit in that repository (agent or human) when the checks fail.
 
-Generic install paths used by `scripts/install.sh --target`:
-| Agent family | Skills directory |
-|--------------|------------------|
-| Agents reading the cross-agent alias (e.g. Codex, Copilot CLI, Gemini CLI) | `~/.agents/skills` (default) |
-| Claude Code | `~/.claude/skills` (user) or `.claude/skills` (project) |
+To add an agent: add a row here (and a `<agent>.md` file if it needs more than a row). Do not edit the core for one agent.
