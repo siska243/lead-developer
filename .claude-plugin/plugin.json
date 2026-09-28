@@ -1,0 +1,9 @@
+{
+  "name": "siska-lead-developer",
+  "version": "1.1.0",
+  "description": "Lead Developer skill: zero regression, security, audits, MCP integration.",
+  "author": { "name": "Emmanuel Simisi" },
+  "repository": "https://github.com/siska243/lead-developer",
+  "license": "MIT",
+  "skills": ["./"]
+}

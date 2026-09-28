@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
-# Install the siska-lead-developer skill (and its siska-lead-mcp entry point)
-# into a Skills directory of a Skills-compatible agent.
+# Install the siska-lead-developer skill into a Skills directory of a
+# Skills-compatible agent. Claude Code users: prefer the plugin (README),
+# which also provides the /siska-lead-developer:<command> shortcuts.
 #
 # Usage: bash install.sh [--target DIR] [--link] [--force] [--dry-run]
 #        bash install.sh --uninstall [--target DIR] [--dry-run]
@@ -16,6 +17,8 @@
 #                 anything else is left untouched. Backups (*.bak.*) are kept.
 #
 # Never overwrites silently: an existing install stops the script unless --force.
+# Claude Code: the plugin is the supported install (README). Installing into a
+# Claude Code skills directory while the plugin is installed is refused (duplicate).
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -39,15 +42,15 @@ done
 
 # name -> source directory inside this repository.
 MAIN_NAME="siska-lead-developer"
-MCP_NAME="siska-lead-mcp"
-MCP_SRC="$REPO_DIR/skills/$MCP_NAME"
+# Entry skill installed by version 1.0.0; still removed by --uninstall.
+LEGACY_NAME="siska-lead-mcp"
 # What a copy install ships (development files like tests/ stay in the repo).
 MAIN_CONTENT="SKILL.md README.md LICENSE CHANGELOG.md references scripts templates compat"
 
 if [ $UNINSTALL -eq 1 ]; then
   [ $LINK -eq 0 ] && [ $FORCE -eq 0 ] || sld_die "--uninstall cannot be combined with --link or --force"
   sld_info "target:  $TARGET"
-  for name in "$MAIN_NAME" "$MCP_NAME"; do
+  for name in "$MAIN_NAME" "$LEGACY_NAME"; do
     path="$TARGET/$name"
     if [ -L "$path" ]; then
       sld_info "remove:  $path (symlink -> $(readlink "$path")); the linked repository is not touched"
@@ -63,7 +66,7 @@ if [ $UNINSTALL -eq 1 ]; then
     fi
   done
   if [ $DRY -eq 1 ]; then sld_info "dry run: nothing changed"; exit 0; fi
-  for name in "$MAIN_NAME" "$MCP_NAME"; do
+  for name in "$MAIN_NAME" "$LEGACY_NAME"; do
     { [ -e "$TARGET/$name" ] || [ -L "$TARGET/$name" ]; } && sld_die "verification failed: $TARGET/$name still present"
   done
   sld_info "uninstalled. Backups ($TARGET/*.bak.*), if any, were kept. Restart your agent session."
@@ -72,12 +75,21 @@ fi
 
 # 1. Detection
 [ -f "$REPO_DIR/SKILL.md" ] || sld_die "SKILL.md not found in $REPO_DIR"
-[ -f "$MCP_SRC/SKILL.md" ] || sld_die "$MCP_SRC/SKILL.md not found"
 TIMESTAMP="$(date +%Y%m%d%H%M%S)"
 conflicts=()
-for name in "$MAIN_NAME" "$MCP_NAME"; do
-  { [ -e "$TARGET/$name" ] || [ -L "$TARGET/$name" ]; } && conflicts+=("$name")
-done
+{ [ -e "$TARGET/$MAIN_NAME" ] || [ -L "$TARGET/$MAIN_NAME" ]; } && conflicts+=("$MAIN_NAME")
+
+# Claude Code reads .claude/skills, not ~/.agents/skills, and has its own plugin install.
+CLAUDE_HOME="${SLD_CLAUDE_HOME:-$HOME/.claude}"
+case "$TARGET" in
+  */.claude/skills|*/.claude/skills/)
+    if grep -q '"siska-lead-developer@' "$CLAUDE_HOME/plugins/installed_plugins.json" 2>/dev/null; then
+      sld_die "the siska-lead-developer plugin is already installed in Claude Code; this copy would duplicate it. Keep the plugin (update: /plugin), or uninstall it first."
+    fi
+    sld_warn "Claude Code: the plugin is recommended (/plugin marketplace add siska243/lead-developer, then /plugin install siska-lead-developer@siska); this copy has no /siska-lead-developer:<command> shortcuts." ;;
+  *)
+    sld_has_cmd claude && sld_warn "Claude Code does not read $TARGET. For Claude Code, use the plugin (README) instead of this script." ;;
+esac
 
 # 2. Plan
 mode="copy"; [ $LINK -eq 1 ] && mode="symlink"
@@ -92,7 +104,6 @@ for name in ${conflicts[@]+"${conflicts[@]}"}; do
   fi
 done
 sld_info "install: $TARGET/$MAIN_NAME"
-sld_info "install: $TARGET/$MCP_NAME"
 [ $DRY -eq 1 ] && { sld_info "dry run: nothing changed"; exit 0; }
 
 # 3. Modification
@@ -101,18 +112,14 @@ for name in ${conflicts[@]+"${conflicts[@]}"}; do mv "$TARGET/$name" "$TARGET/$n
 
 if [ $LINK -eq 1 ]; then
   ln -s "$REPO_DIR" "$TARGET/$MAIN_NAME"
-  ln -s "$MCP_SRC" "$TARGET/$MCP_NAME"
 else
   mkdir "$TARGET/$MAIN_NAME"
   for item in $MAIN_CONTENT; do
     [ -e "$REPO_DIR/$item" ] && cp -R "$REPO_DIR/$item" "$TARGET/$MAIN_NAME/"
   done
-  cp -R "$MCP_SRC" "$TARGET/$MCP_NAME"
 fi
 
 # 4. Verification
-for name in "$MAIN_NAME" "$MCP_NAME"; do
-  [ -f "$TARGET/$name/SKILL.md" ] || sld_die "verification failed: $TARGET/$name/SKILL.md missing"
-done
+[ -f "$TARGET/$MAIN_NAME/SKILL.md" ] || sld_die "verification failed: $TARGET/$MAIN_NAME/SKILL.md missing"
 [ -f "$TARGET/$MAIN_NAME/references/workflow.md" ] || sld_die "verification failed: references missing"
 sld_info "installed and verified. Restart your agent session to load the skills."

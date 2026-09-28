@@ -1,6 +1,6 @@
 ---
 name: siska-lead-developer
-description: Use when working on any software project as a Lead Developer - implementing a feature or ticket, fixing a bug or doing maintenance (TMA) on an existing or production application, starting a new project, reviewing a diff before delivery, auditing security, dependencies or performance, building UI/UX or motion design, or integrating an MCP server (/siska-lead-mcp). Applies to PHP, Laravel, Symfony, SQL, Node.js, React, React Native, Expo, Next.js, Python, FastAPI, Docker, AWS, CI/CD and any other stack.
+description: Use when working on any software project as a Lead Developer - implementing a feature or ticket, fixing a bug or doing maintenance (TMA) on an existing or production application, starting a new project, reviewing a diff before delivery, auditing security, dependencies or performance, building UI/UX or motion design, or integrating an MCP server. Applies to PHP, Laravel, Symfony, SQL, Node.js, React, React Native, Expo, Next.js, Python, FastAPI, Docker, AWS, CI/CD and any other stack.
 ---
 
 # Siska Lead Developer
@@ -52,7 +52,7 @@ Paths to `scripts/`, `references/`, `templates/` and `compat/` are relative to t
    | Tests | `references/testing.md` |
    | Code quality / naming | `references/clean-code.md` |
    | Branch / commits / diff | `references/git.md` |
-   | MCP integration, `/siska-lead-mcp` | `references/mcp.md` + `templates/mcp/` |
+   | MCP integration | `references/mcp.md` + `templates/mcp/` |
 
 3. **Impact analysis** before coding: directly impacted (file, class, function, component, endpoint, table, screen), indirectly impacted (callers, parents/children, API clients, jobs, events, listeners, notifications, permissions, workflows, tests), and regression risks (functional, UX, UI, performance, security, API, mobile, production). Write down: **"What could break?"**
 4. **Plan** (non-trivial tasks: use the agent's plan mode if it has one): goal, scope, files, dependencies, risks, strategy, tests, anti-regression strategy, expected result. Short for trivial changes, detailed for complex ones.

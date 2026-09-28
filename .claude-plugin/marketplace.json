@@ -1,0 +1,12 @@
+{
+  "name": "siska",
+  "description": "Siska Lead Developer plugin for Claude Code.",
+  "owner": { "name": "Emmanuel Simisi" },
+  "plugins": [
+    {
+      "name": "siska-lead-developer",
+      "source": "./",
+      "description": "Lead Developer skill: zero regression, security, audits, MCP integration."
+    }
+  ]
+}

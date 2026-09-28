@@ -85,7 +85,6 @@ bash "$REPO/scripts/install.sh" --target "$T" --dry-run >/dev/null
 check "dry run changes nothing" test ! -e "$T/siska-lead-developer"
 bash "$REPO/scripts/install.sh" --target "$T" >/dev/null
 check "install copies main skill" test -f "$T/siska-lead-developer/references/mcp.md"
-check "install copies mcp entry skill" test -f "$T/siska-lead-mcp/SKILL.md"
 check "dev files not shipped" test ! -e "$T/siska-lead-developer/tests"
 bash "$REPO/scripts/install.sh" --target "$T" >/dev/null 2>&1 && s=0 || s=$?
 assert_status "existing install is not overwritten" 2 "$s"
@@ -107,6 +106,17 @@ bash "$REPO/scripts/install.sh" --target "$L" --link >/dev/null
 bash "$REPO/scripts/install.sh" --uninstall --target "$L" >/dev/null
 check "uninstall removes symlinks" test ! -L "$L/siska-lead-developer"
 check "uninstall keeps the linked repository" test -f "$REPO/SKILL.md"
+
+# --- install: Claude Code target with the plugin already installed is refused ---
+C="$TMP/home/.claude"; mkdir -p "$C/plugins"
+echo '{"plugins":{"siska-lead-developer@siska":[{}]}}' >"$C/plugins/installed_plugins.json"
+out="$(SLD_CLAUDE_HOME="$C" bash "$REPO/scripts/install.sh" --target "$C/skills" 2>&1)" && s=0 || s=$?
+assert_status "no duplicate of the Claude Code plugin" 2 "$s"
+assert_contains "duplicate reason explained" "$out" "plugin is already installed"
+check "nothing installed next to the plugin" test ! -e "$C/skills/siska-lead-developer"
+rm "$C/plugins/installed_plugins.json"
+out="$(SLD_CLAUDE_HOME="$C" bash "$REPO/scripts/install.sh" --target "$C/skills" --dry-run 2>&1)"
+assert_contains "plugin recommended for Claude Code" "$out" "the plugin is recommended"
 
 echo "---"
 if [ $FAILS -ne 0 ]; then echo "$FAILS check(s) failed"; exit 1; fi

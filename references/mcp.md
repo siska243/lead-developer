@@ -1,4 +1,4 @@
-# MCP integration (`/siska-lead-mcp`)
+# MCP integration (`/siska-lead-developer:mcp`)
 
 Goal: expose existing application capabilities to MCP-compatible clients **by reusing existing business logic**, with least privilege and no arbitrary system access.
 
