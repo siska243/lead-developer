@@ -5,7 +5,8 @@
 - Instructions:
   - 2026-09-28: il faut que ce soit utilisable pour Claude, Codex, Copilot, etc.
 - Result: commandes portables `siska-<cmd>` via `install.sh`, hook git `install-git-hook.sh`, `compat/README.md`; reconnues pour Codex, Copilot, OpenCode par le CLI skills; commit `038de15`
-- Question: – (clôturé à la demande de l'utilisateur ; test réel dans Codex non fait : modèles refusés par le compte ChatGPT)
+- Question: –
+- Verified: Codex 0.158.0, `$siska-check-code` → « Commit refused » avec la bonne raison (après mise à jour de Codex et retrait de `model = "gpt-5.4"` dans ~/.codex/config.toml, sauvegarde config.toml.bak)
 
 ## T12 · Réduire les tokens du suivi des demandes
 - Status: ✅ done · Priority: P1 · Created: 2026-09-28 · Updated: 2026-09-28
