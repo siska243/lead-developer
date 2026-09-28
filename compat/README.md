@@ -13,4 +13,6 @@ Agent-specific details live here.
 
 `install.sh` generates the commands (`siska-audit-route`, `siska-check-code`, …) from `skills/` with absolute paths and without agent-specific placeholders, so they run in any agent. The git hook blocks every commit in that repository (agent or human) when the checks fail.
 
+Request ledger enforcement (reminder on each message, response blocked until `.siska/requests.md` is updated) needs prompt/stop hooks: Claude Code plugin only. Other agents follow the rule in `references/requests.md` without enforcement.
+
 To add an agent: add a row here (and a `<agent>.md` file if it needs more than a row). Do not edit the core for one agent.

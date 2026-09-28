@@ -36,7 +36,10 @@ Le plugin installe un hook : avant chaque `git commit` lancé par Claude, il ex�
   - **mobile** : Expo, React Native.
 - Pour choisir exactement quoi lancer, crée `.siska/checks` à la racine du projet, avec une commande par ligne. Tu peux étiqueter une ligne : `front: npm run lint`, `back: php artisan test`.
 - Le hook avant commit contrôle toujours tout. `check-code --front` sert à contrôler une seule partie pendant que tu travailles.
-- Les commits que tu fais toi-même dans ton terminal ne passent pas par ce hook.
+- **Passer le contrôle** pour un commit précis :
+  - demande-le à l'agent (« skip le contrôle pour ce commit ») : il committe avec `SISKA_SKIP_GATE=1 git commit …` et le signale dans son rapport. Il ne le fait jamais sans ta demande ;
+  - ou lance toi-même `SISKA_SKIP_GATE=1 git commit -m "…"`. Avec le hook git (autres agents), `git commit --no-verify` marche aussi ;
+  - les commits que tu fais dans ton propre terminal ne passent pas par le hook du plugin Claude Code.
 - Si les contrôles durent plus de 10 minutes, le hook s'arrête sans bloquer : lance alors `/siska-lead-developer:check-code` avant de committer.
 
 ## Skills et MCP
@@ -72,6 +75,11 @@ Chaque demande reçoit un numéro (`T1`, `T2`…), une priorité (`P1` urgent, `
 - Une demande déjà faite n'est pas refaite : l'agent te demande ce qu'il faut améliorer.
 - Chaque réponse se termine par le tableau des tickets.
 - Le suivi est enregistré dans `.siska/requests.md`, à la racine du projet. À toi de décider si tu le commits ou si tu l'ajoutes au `.gitignore`.
+- **Imposé par le plugin Claude Code** :
+  - à chaque message, l'agent reçoit la liste des tickets ouverts et le format à respecter ;
+  - il ne peut pas terminer sa réponse sans avoir mis à jour `.siska/requests.md`, avec au maximum 2 rappels pour éviter une boucle.
+
+  Ce mécanisme n'est actif que dans un dépôt git. Codex, Copilot et les autres agents n'ont pas ces hooks : chez eux, seule la règle du skill s'applique.
 
 ## Installer (Claude Code)
 

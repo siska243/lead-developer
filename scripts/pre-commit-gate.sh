@@ -5,6 +5,7 @@
 # the session directory, and blocks the commit (exit 2, reason on stderr) when
 # a test, a lint, a secret or a tracked .env fails the check.
 # Can also be run by hand: bash pre-commit-gate.sh [PROJECT_DIR] </dev/null
+# Skip (user decision only): SISKA_SKIP_GATE=1 git commit … (or --no-verify for the git hook).
 set -uo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -13,6 +14,12 @@ input=""
 [ -t 0 ] || input="$(cat)"
 # Hook mode: only act on git commits, including "git -C dir commit" and "git -c k=v commit".
 if [ -n "$input" ] && ! printf '%s' "$input" | grep -Eq 'git([[:space:]]+-[cC][[:space:]]+[^[:space:]]+)*[[:space:]]+commit([^[:alnum:]-]|$)'; then
+  exit 0
+fi
+
+# Explicit skip, visible in the command or the environment.
+if [ "${SISKA_SKIP_GATE:-}" = 1 ] || printf '%s' "$input" | grep -Eq 'SISKA_SKIP_GATE=1[[:space:]]+git'; then
+  echo "siska commit gate skipped (SISKA_SKIP_GATE=1): tests, lint and secret checks were NOT run." >&2
   exit 0
 fi
 

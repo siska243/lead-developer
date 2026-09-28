@@ -2,6 +2,16 @@
 
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), versions: [SemVer](https://semver.org/).
 
+## [1.8.0] - 2026-09-28
+### Added
+- Request ledger enforced in the Claude Code plugin (`scripts/ledger-hook.sh`): each message injects the open tickets and the ledger format; the response cannot end until `.siska/requests.md` was updated (max 2 reminders, git repositories only).
+### Fixed
+- `SKILL.md` states the ticket ID format again (`T1`, `T2`…).
+
+## [1.7.1] - 2026-09-28
+### Added
+- Explicit commit gate skip: `SISKA_SKIP_GATE=1 git commit …` (announced on stderr); the agent uses it only when the user asks in the current message and reports it.
+
 ## [1.7.0] - 2026-09-28
 ### Added
 - Commands for every Skills-compatible agent: `install.sh` generates `siska-audit-route`, `siska-check-code`, `siska-document`, `siska-skills`, `siska-tickets`, `siska-mcp`, `siska-help` with absolute paths and standard frontmatter only (recognized for Codex, GitHub Copilot, OpenCode).

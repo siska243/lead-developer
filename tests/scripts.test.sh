@@ -110,6 +110,11 @@ if command -v git >/dev/null 2>&1; then
     printf '{"cwd":"%s","tool_input":{"command":"%s"}}' "$K" "$cmd" | bash "$REPO/scripts/pre-commit-gate.sh" >/dev/null 2>&1 && s=0 || s=$?
     assert_status "gate ignores: $cmd" 0 "$s"
   done
+  printf '{"cwd":"%s","tool_input":{"command":"SISKA_SKIP_GATE=1 git commit -m x"}}' "$K" | bash "$REPO/scripts/pre-commit-gate.sh" >/dev/null 2>&1 && s=0 || s=$?
+  assert_status "explicit skip in the command lets the commit through" 0 "$s"
+  err="$(SISKA_SKIP_GATE=1 bash "$REPO/scripts/pre-commit-gate.sh" "$K" </dev/null 2>&1)" && s=0 || s=$?
+  assert_status "explicit skip in the environment" 0 "$s"
+  assert_contains "skip is announced" "$err" "NOT run"
   printf '{"cwd":"%s","tool_input":{"command":"git commit -m x"}}' "$TMP" | bash "$REPO/scripts/pre-commit-gate.sh" >/dev/null 2>&1 && s=0 || s=$?
   assert_status "gate ignores non-git directories" 0 "$s"
 fi
@@ -239,6 +244,29 @@ if command -v git >/dev/null 2>&1; then
   assert_status "missing gate script does not brick commits" 0 "$s"
   bash "$REPO/scripts/install-git-hook.sh" "$GH" --uninstall >/dev/null
   check "hook uninstalled" test ! -e "$GH/.git/hooks/pre-commit"
+fi
+
+# --- ledger hook: remind on each message, block the end until the ledger is updated ---
+if command -v git >/dev/null 2>&1; then
+  LH="$TMP/ledgerhook"; LS="$TMP/ledgerstate"; mkdir -p "$LH" "$LS"; git -C "$LH" init -q
+  pl="{\"cwd\":\"$LH\",\"session_id\":\"s1\"}"
+  out="$(printf '%s' "$pl" | SLD_STATE_DIR="$LS" bash "$REPO/scripts/ledger-hook.sh" prompt)"
+  assert_contains "prompt hook asks to create the ledger" "$out" "create it with this request as T1"
+  printf '%s' "$pl" | SLD_STATE_DIR="$LS" bash "$REPO/scripts/ledger-hook.sh" stop >/dev/null 2>&1 && s=0 || s=$?
+  assert_status "stop blocked while the ledger is missing" 2 "$s"
+  mkdir -p "$LH/.siska"; sleep 1
+  printf '# Requests\n\n## T1 · Login\n- Status: 🔄 in progress · Priority: P1\n\n## T2 · Old\n- Status: ✅ done · Priority: P2\n' >"$LH/.siska/requests.md"
+  printf '%s' "$pl" | SLD_STATE_DIR="$LS" bash "$REPO/scripts/ledger-hook.sh" stop >/dev/null 2>&1 && s=0 || s=$?
+  assert_status "stop allowed once the ledger is updated" 0 "$s"
+  sleep 1
+  out="$(printf '%s' "$pl" | SLD_STATE_DIR="$LS" bash "$REPO/scripts/ledger-hook.sh" prompt)"
+  assert_contains "prompt hook lists open tickets" "$out" "T1 · Login — 🔄 in progress"
+  check "closed tickets not listed" not_contains "$out" "T2 · Old"
+  for _ in 1 2; do printf '%s' "$pl" | SLD_STATE_DIR="$LS" bash "$REPO/scripts/ledger-hook.sh" stop >/dev/null 2>&1 || true; done
+  printf '%s' "$pl" | SLD_STATE_DIR="$LS" bash "$REPO/scripts/ledger-hook.sh" stop >/dev/null 2>&1 && s=0 || s=$?
+  assert_status "no endless loop: third stop is allowed" 0 "$s"
+  printf '{"cwd":"%s","session_id":"s2"}' "$TMP" | SLD_STATE_DIR="$LS" bash "$REPO/scripts/ledger-hook.sh" prompt >/dev/null 2>&1 && s=0 || s=$?
+  check "inactive outside git repositories" test ! -e "$LS/siska-ledger-s2"
 fi
 
 # --- install: Claude Code target with the plugin already installed is refused ---
