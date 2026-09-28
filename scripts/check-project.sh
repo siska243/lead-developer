@@ -1,12 +1,15 @@
 #!/usr/bin/env bash
 # Pre-delivery project check.
 #
-# Usage: bash check-project.sh [PROJECT_DIR] [--run-tests]
+# Usage: bash check-project.sh [PROJECT_DIR] [--run-tests] [--run-lint] [--scope front,back,mobile]
 #
 # Reports: detected stack, git state (branch, uncommitted changes), tracked
 # .env files, secrets and debug leftovers in the current diff, and the test
-# commands found. With --run-tests, runs those test commands.
-# Read-only except for what the project's own test commands do.
+# and lint commands found (or declared in .siska/checks, one per line).
+# --run-tests / --run-lint run them; a failure is blocking. --scope limits them
+# to front (web UI), back (PHP, Python, server-side Node) and/or mobile (Expo,
+# React Native); in .siska/checks a line can be tagged "front: <command>".
+# Read-only except for what the project's own commands do.
 # Exit code: 0 ok (warnings allowed), 1 blocking problem found, 2 usage error.
 set -uo pipefail
 
@@ -14,14 +17,22 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck source=lib.sh
 . "$SCRIPT_DIR/lib.sh"
 
-ROOT_ARG="." RUN_TESTS=0
+ROOT_ARG="." RUN_TESTS=0 RUN_LINT=0 SCOPE="all" NEXT_IS_SCOPE=0
 for arg in "$@"; do
+  if [ $NEXT_IS_SCOPE -eq 1 ]; then SCOPE="$arg"; NEXT_IS_SCOPE=0; continue; fi
   case "$arg" in
-    -h|--help) sed -n '2,11p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
+    --scope) NEXT_IS_SCOPE=1 ;;
+    --scope=*) SCOPE="${arg#--scope=}" ;;
+    -h|--help) sed -n '2,14p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
     --run-tests) RUN_TESTS=1 ;;
+    --run-lint) RUN_LINT=1 ;;
     -*) sld_die "unknown option: $arg" ;;
     *) ROOT_ARG="$arg" ;;
   esac
+done
+[ $NEXT_IS_SCOPE -eq 0 ] || sld_die "--scope needs a value: front, back, mobile (comma-separated)"
+for sc in ${SCOPE//,/ }; do
+  case "$sc" in all|front|back|mobile) ;; *) sld_die "unknown scope: $sc (front, back, mobile)" ;; esac
 done
 ROOT="$(sld_project_root "$ROOT_ARG")"
 BLOCKING=0
@@ -68,42 +79,94 @@ else
 fi
 
 sld_info ""
-sld_info "## Tests"
-TEST_CMDS=()
-add_test() { TEST_CMDS+=("$1|$2"); sld_info "found: [$1] $2"; }
+sld_info "## Tests and lint"
+# Each entry: "kind|scope|dir|command" (kind: test, lint or check; scope: front, back, mobile or all).
+CMDS=()
+CUR_SCOPE=all
+add_cmd() { CMDS+=("$1|$CUR_SCOPE|$2|$3"); sld_info "found: $1 ($CUR_SCOPE) [$2] $3"; }
 
-while IFS= read -r rel; do
-  [ -n "$rel" ] || continue
-  d="$ROOT/$rel"
-  if [ -f "$d/composer.json" ]; then
-    if grep -Eq '"test"[[:space:]]*:' "$d/composer.json"; then add_test "$rel" "composer test"
-    elif [ -f "$d/artisan" ]; then add_test "$rel" "php artisan test"
-    elif [ -x "$d/vendor/bin/pest" ]; then add_test "$rel" "vendor/bin/pest"
-    elif [ -x "$d/vendor/bin/phpunit" ]; then add_test "$rel" "vendor/bin/phpunit"
-    fi
-  fi
-  if [ -f "$d/package.json" ] && grep -Eq '"test"[[:space:]]*:' "$d/package.json" \
-     && ! grep -q 'no test specified' "$d/package.json"; then
-    pm="$(sld_node_pm "$d")"; pm="${pm%% *}"
-    add_test "$rel" "$pm test"
-  fi
-  if [ -f "$d/pytest.ini" ] || [ -f "$d/conftest.py" ] || grep -q '\[tool.pytest' "$d/pyproject.toml" 2>/dev/null || sld_py_has_dep "$d" pytest; then
-    add_test "$rel" "pytest"
-  fi
-done <<<"$(sld_project_dirs "$ROOT")"
+# Scope of a Node project from its dependencies.
+node_scope() {
+  local p="$1/package.json" dep
+  for dep in expo react-native; do sld_json_has_key "$p" "$dep" && { echo mobile; return; }; done
+  for dep in next react vue nuxt vite svelte "@angular/core"; do sld_json_has_key "$p" "$dep" && { echo front; return; }; done
+  echo back
+}
 
-if [ ${#TEST_CMDS[@]} -eq 0 ]; then
-  warn "no test command detected – verify manually and report it"
-elif [ $RUN_TESTS -eq 1 ]; then
-  for entry in "${TEST_CMDS[@]}"; do
-    rel="${entry%%|*}" cmd="${entry#*|}"
-    sld_info "RUN [$rel] $cmd"
-    # Word splitting of $cmd is intended: commands come from the fixed list above.
-    # shellcheck disable=SC2086
-    if (cd "$ROOT/$rel" && $cmd); then ok "[$rel] $cmd"; else block "[$rel] $cmd failed"; fi
-  done
+in_scope() { # entry scope -> true if it must run for the requested --scope
+  [ "$SCOPE" = all ] || [ "$1" = all ] || case ",$SCOPE," in *",$1,"*) true ;; *) false ;; esac
+}
+
+if [ -f "$ROOT/.siska/checks" ]; then
+  # Project-declared checks replace detection: one shell command per line, run from the root.
+  sld_info "using .siska/checks"
+  while IFS= read -r line || [ -n "$line" ]; do
+    case "$line" in ''|'#'*) continue ;; esac
+    case "$line" in
+      front:*|back:*|mobile:*) CUR_SCOPE="${line%%:*}"; line="${line#*:}"; line="${line#"${line%%[![:space:]]*}"}" ;;
+      *) CUR_SCOPE=all ;;
+    esac
+    add_cmd check . "$line"
+  done <"$ROOT/.siska/checks"
 else
-  sld_info "(run with --run-tests to execute them)"
+  while IFS= read -r rel; do
+    [ -n "$rel" ] || continue
+    d="$ROOT/$rel"
+    if [ -f "$d/composer.json" ]; then
+      CUR_SCOPE=back
+      if sld_json_has_key "$d/composer.json" test; then add_cmd test "$rel" "composer test"
+      elif [ -f "$d/artisan" ]; then add_cmd test "$rel" "php artisan test"
+      elif [ -x "$d/vendor/bin/pest" ]; then add_cmd test "$rel" "vendor/bin/pest"
+      elif [ -x "$d/vendor/bin/phpunit" ]; then add_cmd test "$rel" "vendor/bin/phpunit"
+      fi
+      if sld_json_has_key "$d/composer.json" lint; then add_cmd lint "$rel" "composer lint"
+      elif [ -x "$d/vendor/bin/pint" ]; then add_cmd lint "$rel" "vendor/bin/pint --test"
+      fi
+      if [ -x "$d/vendor/bin/phpstan" ] && { [ -f "$d/phpstan.neon" ] || [ -f "$d/phpstan.neon.dist" ]; }; then
+        add_cmd lint "$rel" "vendor/bin/phpstan analyse --no-progress"
+      fi
+    fi
+    if [ -f "$d/package.json" ]; then
+      CUR_SCOPE="$(node_scope "$d")"
+      pm="$(sld_node_pm "$d")"; pm="${pm%% *}"
+      if sld_json_has_key "$d/package.json" test && ! grep -q 'no test specified' "$d/package.json"; then
+        add_cmd test "$rel" "$pm test"
+      fi
+      for script in lint typecheck type-check; do
+        sld_json_has_key "$d/package.json" "$script" && add_cmd lint "$rel" "$pm run $script"
+      done
+    fi
+    CUR_SCOPE=back
+    if [ -f "$d/pytest.ini" ] || [ -f "$d/conftest.py" ] || grep -q '\[tool.pytest' "$d/pyproject.toml" 2>/dev/null || sld_py_has_dep "$d" pytest; then
+      add_cmd test "$rel" "pytest"
+    fi
+    if sld_has_cmd ruff && { [ -f "$d/ruff.toml" ] || [ -f "$d/.ruff.toml" ] || grep -q '\[tool.ruff' "$d/pyproject.toml" 2>/dev/null; }; then
+      add_cmd lint "$rel" "ruff check ."
+    fi
+  done <<<"$(sld_project_dirs "$ROOT")"
+fi
+
+if [ ${#CMDS[@]} -eq 0 ]; then
+  warn "no test or lint command detected – declare them in .siska/checks, or verify manually and report it"
+elif [ $RUN_TESTS -eq 0 ] && [ $RUN_LINT -eq 0 ]; then
+  sld_info "(run with --run-tests and/or --run-lint to execute them)"
+else
+  RAN=0
+  for entry in "${CMDS[@]}"; do
+    kind="${entry%%|*}" rest="${entry#*|}"
+    scope="${rest%%|*}" rest="${rest#*|}"
+    rel="${rest%%|*}" cmd="${rest#*|}"
+    in_scope "$scope" || continue
+    case "$kind" in
+      test) [ $RUN_TESTS -eq 1 ] || continue ;;
+      lint) [ $RUN_LINT -eq 1 ] || continue ;;
+    esac
+    sld_info "RUN [$rel] $cmd"
+    RAN=$((RAN + 1))
+    # Commands come from detection above or from the project's own .siska/checks.
+    if (cd "$ROOT/$rel" && bash -c "$cmd"); then ok "[$rel] $cmd"; else block "[$rel] $cmd failed"; fi
+  done
+  [ $RAN -gt 0 ] || warn "no test or lint command for scope '$SCOPE' – that part is NOT verified"
 fi
 
 sld_info ""

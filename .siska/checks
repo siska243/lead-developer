@@ -1,0 +1,2 @@
+# Commands run before every commit (one per line).
+bash tests/scripts.test.sh

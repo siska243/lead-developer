@@ -20,6 +20,15 @@ chore: bump laravel/framework to 11.x security release
 - Do not mention AI tools or vendors in commit messages (unless the user or the environment explicitly requires an attribution trailer).
 - One logical change per commit. No unrelated files.
 
+## Commit gate (mandatory)
+```bash
+bash scripts/check-project.sh <project> --run-tests --run-lint
+```
+Exit code 1 = commit refused: failing test, failing lint/type check, possible secret or tracked `.env`. Fix, re-run, then commit. Never bypass it (`--no-verify`, skipping or weakening tests, editing linter config).
+Projects can declare their exact checks in `.siska/checks` (one shell command per line, run from the root; optional `front:` / `back:` / `mobile:` prefix); it replaces auto-detection.
+`--scope front,back,mobile` checks only those parts while working; the commit gate always checks everything.
+Claude Code: the plugin hook runs this gate automatically on every `git commit` and blocks it on failure.
+
 ## Before commit / PR
 ```bash
 git status

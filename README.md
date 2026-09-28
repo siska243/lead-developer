@@ -13,8 +13,40 @@ Fait travailler ton agent IA comme un **Lead Developer senior** : zéro régress
 | `/siska-lead-developer:audit-package` | Dépendances : vulnérabilités, paquets abandonnés ou non maintenus, paquets inutilisés (désinstallés après ton accord) |
 | `/siska-lead-developer:audit-package --outdated` | Idem + paquets obsolètes |
 | `/siska-lead-developer:mcp <quoi exposer>` | Ajouter / auditer un serveur MCP |
+| `/siska-lead-developer:check-code` | Contrôle avant commit : tests, linters, secrets, `.env`. Commit refusé si quelque chose échoue |
+| `/siska-lead-developer:check-code --front` | Idem, uniquement le front (aussi `--back`, `--mobile`, cumulables) |
+| `/siska-lead-developer:tickets` | Demandes en cours (T1, T2…) avec statut et priorité · `--all` pour toutes |
+| `/siska-lead-developer:tickets t2 done` | Modifier un ticket : `done`, `todo`, `progress`, `cancel`, `info`, `P1`–`P3`, ou ajouter une consigne |
 
 Les audits ne modifient rien : ils rendent un rapport, puis te demandent quoi corriger.
+
+## Commit bloqué si les contrôles échouent
+
+Le plugin installe un hook : avant chaque `git commit` lancé par Claude, il exécute les tests, les linters et la recherche de secrets. Si l'un d'eux échoue, **le commit est bloqué** et la raison s'affiche.
+
+- Les commandes sont détectées automatiquement :
+  - PHP : `composer test`, `php artisan test`, Pest, PHPUnit, Pint, PHPStan ;
+  - JS/TS : les scripts `test`, `lint` et `typecheck` du `package.json` ;
+  - Python : `pytest` et `ruff`.
+- Classement automatique :
+  - **back** : PHP, Python, Node côté serveur ;
+  - **front** : React, Next.js, Vue, Vite… ;
+  - **mobile** : Expo, React Native.
+- Pour choisir exactement quoi lancer, crée `.siska/checks` à la racine du projet, avec une commande par ligne. Tu peux étiqueter une ligne : `front: npm run lint`, `back: php artisan test`.
+- Le hook avant commit contrôle toujours tout. `check-code --front` sert à contrôler une seule partie pendant que tu travailles.
+- Les commits que tu fais toi-même dans ton terminal ne passent pas par ce hook.
+- Si les contrôles durent plus de 10 minutes, le hook s'arrête sans bloquer : lance alors `/siska-lead-developer:check-code` avant de committer.
+
+## Suivi des demandes
+
+Chaque demande reçoit un numéro (`T1`, `T2`…), une priorité (`P1` urgent, `P2` normal, `P3` secondaire) et un statut :
+⬜ à faire · 🔄 en cours · ✅ fait · ❓ besoin d'info · ❌ annulé.
+
+- Écris `t3 <consigne>` pour compléter le ticket T3, et `t2 P1` pour changer sa priorité.
+- Une nouvelle demande ne remplace pas les précédentes : elle entre dans la file.
+- Une demande déjà faite n'est pas refaite : l'agent te demande ce qu'il faut améliorer.
+- Chaque réponse se termine par le tableau des tickets.
+- Le suivi est enregistré dans `.siska/requests.md`, à la racine du projet. À toi de décider si tu le commits ou si tu l'ajoutes au `.gitignore`.
 
 ## Installer (Claude Code)
 
