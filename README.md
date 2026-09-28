@@ -16,6 +16,7 @@ Fait travailler ton agent IA comme un **Lead Developer senior** : zéro régress
 | `/siska-lead-developer:check-code` | Contrôle avant commit : tests, linters, secrets, `.env`. Commit refusé si quelque chose échoue |
 | `/siska-lead-developer:check-code --front` | Idem, uniquement le front (aussi `--back`, `--mobile`, cumulables) |
 | `/siska-lead-developer:document <fonctionnalité>` | Documentation : fonctionnelle, puis technique (appels API…) · `--functional`, `--api`, `--code` |
+| `/siska-lead-developer:skills` | Skills et MCP installés · `find <besoin>` · `vet <source>` · `install <source>` (seulement après ton oui) |
 | `/siska-lead-developer:tickets` | Demandes en cours (T1, T2…) avec statut et priorité · `--all` pour toutes |
 | `/siska-lead-developer:tickets t2 done` | Modifier un ticket : `done`, `todo`, `progress`, `cancel`, `info`, `P1`–`P3`, ou ajouter une consigne |
 
@@ -37,6 +38,20 @@ Le plugin installe un hook : avant chaque `git commit` lancé par Claude, il ex�
 - Le hook avant commit contrôle toujours tout. `check-code --front` sert à contrôler une seule partie pendant que tu travailles.
 - Les commits que tu fais toi-même dans ton terminal ne passent pas par ce hook.
 - Si les contrôles durent plus de 10 minutes, le hook s'arrête sans bloquer : lance alors `/siska-lead-developer:check-code` avant de committer.
+
+## Skills et MCP
+
+Siska utilise d'abord les skills et MCP déjà installés, et ne charge que ceux utiles à la tâche. S'il en manque un :
+1. il le cherche, avec `npx skills find` pour les skills et le registre officiel pour les MCP ;
+2. il l'analyse sans l'exécuter (`scripts/vet-skill.sh` : scripts, hooks, accès réseau, secrets, commandes dangereuses, instructions cachées) ;
+3. il te demande ton accord : oui, non, ou plus d'infos.
+
+Un refus est définitif, et Siska continue sans le skill si c'est possible. Pour les actions à risque (production, suppression, `DROP`, déploiement, DNS…), il montre l'impact et le retour arrière, puis demande confirmation, ou refuse.
+
+Exemples :
+- « Il me manque un skill Kubernetes » : il vérifie ce qui est installé, cherche, analyse, puis te propose 1 à 3 skills à installer.
+- « Optimise mon Docker pour la prod » : il combine l'expertise Docker, sécurité et performance, dans un seul plan.
+- « Déploie cette application » : action à haut risque, il montre l'impact, le retour arrière, et attend ta confirmation.
 
 ## Documentation
 

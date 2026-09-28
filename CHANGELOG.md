@@ -2,6 +2,14 @@
 
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), versions: [SemVer](https://semver.org/).
 
+## [1.6.0] - 2026-09-28
+### Added
+- Skill and MCP orchestration (`references/orchestration.md`): needed capabilities → installed → search (skills.sh, agent marketplaces, official MCP Registry) → vetting → consent → install; refusal is final; Siska's rules override any skill.
+- `scripts/list-capabilities.sh`: skills and MCP servers installed for AI coding agents (skill dirs, plugins, MCP configs).
+- `scripts/vet-skill.sh`: static security review of a skill/plugin before install (scripts, hooks, MCP servers, allowed-tools, network, secrets, destructive or hidden instructions).
+- `/siska-lead-developer:skills [list|find|vet|install]`.
+- High-risk action rule: impact and rollback, explicit confirmation, or refusal.
+
 ## [1.5.0] - 2026-09-28
 ### Added
 - Mandatory feature documentation (`references/documentation.md`): functional page, then technical (API calls, data, jobs, security), verified against the code, human-sounding; part of the delivery checklist.

@@ -5,6 +5,14 @@ Install as a plugin (see README): `claude plugin marketplace add <repo or path>`
 The plugin manifest (`.claude-plugin/`) and the command skills (`skills/`) are this compatibility layer;
 they use `${CLAUDE_SKILL_DIR}` to reach the core files.
 
+## Installing a skill, plugin or MCP server (after vetting and the user's yes)
+| What | Command |
+|------|---------|
+| Plugin from a marketplace | `/plugin install <plugin>@<marketplace>` or `claude plugin install <plugin>@<marketplace>` |
+| Skill from the skills.sh ecosystem | `npx skills add <owner/repo> -s <skill> -a claude-code` (add `-g` for user scope) |
+| MCP server | `claude mcp add <name> -- <command> [args]` (stdio) or `claude mcp add --transport http <name> <url>`; `-s project` writes `.mcp.json` |
+| Check | `claude plugin list`, `claude mcp list`, `/reload-plugins` |
+
 ## Native capabilities
 | Skill need | Claude Code |
 |------------|-------------|
