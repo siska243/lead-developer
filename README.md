@@ -15,6 +15,8 @@ Fait travailler ton agent IA comme un **Lead Developer senior** : zéro régress
 | `/siska-lead-developer:mcp <quoi exposer>` | Ajouter / auditer un serveur MCP |
 | `/siska-lead-developer:check-code` | Contrôle avant commit : tests, linters, secrets, `.env`. Commit refusé si quelque chose échoue |
 | `/siska-lead-developer:check-code --front` | Idem, uniquement le front (aussi `--back`, `--mobile`, cumulables) |
+| `/siska-lead-developer:document <fonctionnalité>` | Documentation : fonctionnelle, puis technique (appels API…) · `--functional`, `--api`, `--code` |
+| `/siska-lead-developer:skills` | Skills et MCP installés · `find <besoin>` · `vet <source>` · `install <source>` (seulement après ton oui) |
 | `/siska-lead-developer:tickets` | Demandes en cours (T1, T2…) avec statut et priorité · `--all` pour toutes |
 | `/siska-lead-developer:tickets t2 done` | Modifier un ticket : `done`, `todo`, `progress`, `cancel`, `info`, `P1`–`P3`, ou ajouter une consigne |
 
@@ -36,6 +38,29 @@ Le plugin installe un hook : avant chaque `git commit` lancé par Claude, il ex�
 - Le hook avant commit contrôle toujours tout. `check-code --front` sert à contrôler une seule partie pendant que tu travailles.
 - Les commits que tu fais toi-même dans ton terminal ne passent pas par ce hook.
 - Si les contrôles durent plus de 10 minutes, le hook s'arrête sans bloquer : lance alors `/siska-lead-developer:check-code` avant de committer.
+
+## Skills et MCP
+
+Siska utilise d'abord les skills et MCP déjà installés, et ne charge que ceux utiles à la tâche. S'il en manque un :
+1. il le cherche, avec `npx skills find` pour les skills et le registre officiel pour les MCP ;
+2. il l'analyse sans l'exécuter (`scripts/vet-skill.sh` : scripts, hooks, accès réseau, secrets, commandes dangereuses, instructions cachées) ;
+3. il te demande ton accord : oui, non, ou plus d'infos.
+
+Un refus est définitif, et Siska continue sans le skill si c'est possible. Pour les actions à risque (production, suppression, `DROP`, déploiement, DNS…), il montre l'impact et le retour arrière, puis demande confirmation, ou refuse.
+
+Exemples :
+- « Il me manque un skill Kubernetes » : il vérifie ce qui est installé, cherche, analyse, puis te propose 1 à 3 skills à installer.
+- « Optimise mon Docker pour la prod » : il combine l'expertise Docker, sécurité et performance, dans un seul plan.
+- « Déploie cette application » : action à haut risque, il montre l'impact, le retour arrière, et attend ta confirmation.
+
+## Documentation
+
+Chaque nouvelle fonctionnalité, ou fonctionnalité modifiée, est documentée dans le même ticket. Sans sa documentation, le ticket n'est pas terminé.
+
+1. **Fonctionnel** : à quoi elle sert, pour qui, le parcours, les règles, les écrans, les erreurs.
+2. **Technique** : les appels API (route, authentification, paramètres, réponses, erreurs, exemples), les données, les jobs, les permissions.
+
+Tout est vérifié dans le code, rien n'est inventé, et le texte est écrit comme par un humain. La fiche va dans le dossier de documentation du projet, ou dans `docs/features/` s'il n'en a pas. Le fichier OpenAPI est mis à jour s'il existe.
 
 ## Suivi des demandes
 
@@ -88,15 +113,24 @@ claude plugin uninstall siska-lead-developer@siska
 claude plugin marketplace remove siska      # retire aussi le catalogue
 ```
 
-## Autres agents (Codex, Gemini CLI, Copilot CLI…)
-
-Seul le skill principal est installé, sans les commandes `:xxx` qui sont propres à Claude Code.
-**Ne pas utiliser ce script pour Claude Code** : utilise le plugin. Le script refuse d'installer dans `.claude/skills` si le plugin y est déjà, pour éviter un doublon.
+## Codex, GitHub Copilot, OpenCode et autres agents
 
 ```bash
-bash scripts/install.sh                      # dans ~/.agents/skills (--target DIR pour un autre dossier)
-bash scripts/install.sh --uninstall          # désinstaller
+git clone https://github.com/siska243/lead-developer && cd lead-developer
+bash scripts/install.sh                               # dans ~/.agents/skills
+bash scripts/install-git-hook.sh /chemin/du/projet    # bloque les commits si les contrôles échouent
 ```
+
+- Le skill principal et ses commandes sont installés sous les noms `siska-audit-route`, `siska-check-code`, `siska-document`, `siska-skills`, `siska-tickets`, `siska-mcp` et `siska-help`.
+- Pour appeler une commande :
+  - Codex : `$siska-check-code`, ou `/skills` ;
+  - Copilot : choisis ou cite `siska-check-code`.
+- Pour un seul projet : `bash scripts/install.sh --target /chemin/du/projet/.agents/skills`.
+- Désinstaller : `bash scripts/install.sh --uninstall` et `bash scripts/install-git-hook.sh /chemin/du/projet --uninstall`.
+- Le hook git bloque tous les commits du dépôt, que ce soit un agent ou toi qui committe. Il ne remplace jamais un hook existant, ni husky ou lefthook : dans ce cas, il affiche la ligne à ajouter.
+- Détails par agent : `compat/README.md`.
+
+**Ne pas utiliser ce script pour Claude Code** : utilise le plugin. Le script refuse d'installer dans `.claude/skills` si le plugin y est déjà, pour éviter un doublon.
 
 Options : `--link` (lien symbolique), `--force` (remplace en gardant une sauvegarde), `--dry-run` (aperçu).
 

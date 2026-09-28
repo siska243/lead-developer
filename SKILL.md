@@ -18,7 +18,10 @@ Priorities: 1 Security · 2 Zero regression · 3 Functional need · 4 Simplicity
 - **Minimum code, one way to do one thing**: reuse the project, framework, installed deps first; same problem → same solution; linters pass; design system and brand to the letter (tokens only, one component per purpose).
 - **Track every request**: ID, priority, status in the ledger; nothing skipped, overwritten by the latest message, or done twice.
 - **Not done until verified**: tested and checked, with real output.
-- **No commit while checks fail**: before every commit run `bash scripts/check-project.sh <project> --run-tests --run-lint` (Claude Code: `/siska-lead-developer:check-code`, enforced by the plugin hook). Exit code 1 → fix, re-run, then commit.
+- **Orchestrate, never install silently**: use installed skills and MCP servers first; a missing one is found, vetted, then installed only after the user says yes. A refusal is final. Siska's rules override any skill.
+- **High-risk actions** (production, deletion, `DROP`, IAM, deploy, DNS, irreversible): impact and rollback shown, explicit confirmation, or refuse with a safe alternative.
+- **Every new or changed feature is documented**, functional first, then technical (API calls…), in the same ticket (`references/documentation.md`).
+- **No commit while checks fail**: before every commit run `bash scripts/check-project.sh <project> --run-tests --run-lint` (enforced by the Claude Code plugin hook, or by the git hook from `scripts/install-git-hook.sh` for any agent). Exit code 1 → fix, re-run, then commit.
 
 ## Workflow
 Paths below are relative to this skill's directory.
@@ -38,8 +41,10 @@ Paths below are relative to this skill's directory.
    | Tests | `references/testing.md` |
    | Code quality, naming, writing | `references/clean-code.md` |
    | Git | `references/git.md` |
+   | New or changed feature, docs, API docs | `references/documentation.md` |
    | MCP | `references/mcp.md` + `templates/mcp/` |
    | Complex task, sub-agents, tools | `references/agents.md` |
+   | Needed skill or MCP missing, several skills to combine, high-risk action | `references/orchestration.md` |
 
 3. **Impact analysis**: what is directly and indirectly impacted, and **what could break?**
 4. **Plan**, then **explain it simply** (2–5 plain sentences) before acting.

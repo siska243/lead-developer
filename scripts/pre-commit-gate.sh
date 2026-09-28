@@ -29,7 +29,7 @@ if report="$(bash "$SCRIPT_DIR/check-project.sh" "$root" --run-tests --run-lint 
 fi
 
 {
-  echo "Commit blocked by siska-lead-developer: the pre-commit check failed. Fix these problems, run /siska-lead-developer:check-code, then commit again."
+  echo "Commit blocked by siska-lead-developer: the pre-commit check failed. Fix these problems, re-run the check (check-code command, or check-project.sh --run-tests --run-lint), then commit again."
   printf '%s\n' "$report" | grep -E '^(BLOCK|RESULT)|failed|possible secret' | head -n 40
 } >&2
 exit 2

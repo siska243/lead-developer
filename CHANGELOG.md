@@ -2,6 +2,28 @@
 
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), versions: [SemVer](https://semver.org/).
 
+## [1.7.0] - 2026-09-28
+### Added
+- Commands for every Skills-compatible agent: `install.sh` generates `siska-audit-route`, `siska-check-code`, `siska-document`, `siska-skills`, `siska-tickets`, `siska-mcp`, `siska-help` with absolute paths and standard frontmatter only (recognized for Codex, GitHub Copilot, OpenCode).
+- `scripts/install-git-hook.sh`: native git pre-commit commit gate for any agent; never overwrites an existing hook or hook manager; harmless if the skill is later removed.
+- `compat/README.md`: install, skills directory, command call and commit gate per agent.
+### Changed
+- Commit gate message no longer names one agent.
+
+## [1.6.0] - 2026-09-28
+### Added
+- Skill and MCP orchestration (`references/orchestration.md`): needed capabilities → installed → search (skills.sh, agent marketplaces, official MCP Registry) → vetting → consent → install; refusal is final; Siska's rules override any skill.
+- `scripts/list-capabilities.sh`: skills and MCP servers installed for AI coding agents (skill dirs, plugins, MCP configs).
+- `scripts/vet-skill.sh`: static security review of a skill/plugin before install (scripts, hooks, MCP servers, allowed-tools, network, secrets, destructive or hidden instructions).
+- `/siska-lead-developer:skills [list|find|vet|install]`.
+- High-risk action rule: impact and rollback, explicit confirmation, or refusal.
+
+## [1.5.0] - 2026-09-28
+### Added
+- Mandatory feature documentation (`references/documentation.md`): functional page, then technical (API calls, data, jobs, security), verified against the code, human-sounding; part of the delivery checklist.
+- `/siska-lead-developer:document [--functional|--api|--code]`.
+- OpenAPI guidance per stack (FastAPI, Scramble/Scribe, API Platform/Nelmio, @nestjs/swagger, swagger-jsdoc) and spec lint with `@redocly/cli`.
+
 ## [1.4.0] - 2026-09-28
 ### Added
 - Commit gate: plugin `PreToolUse` hook runs `scripts/pre-commit-gate.sh` on every `git commit` and blocks it when tests, lint, secret or `.env` checks fail.
