@@ -2,6 +2,10 @@
 
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), versions: [SemVer](https://semver.org/).
 
+## [1.8.1] - 2026-09-28
+### Changed
+- Lower token use of the request ledger: closed tickets are archived automatically by the prompt hook (`.siska/requests-archive.md`), new tickets are appended without reading the file, updates read only the ticket's lines, shorter hook text with the last ID, compact end-of-response table.
+
 ## [1.8.0] - 2026-09-28
 ### Added
 - Request ledger enforced in the Claude Code plugin (`scripts/ledger-hook.sh`): each message injects the open tickets and the ledger format; the response cannot end until `.siska/requests.md` was updated (max 2 reminders, git repositories only).

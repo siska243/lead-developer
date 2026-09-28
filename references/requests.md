@@ -6,7 +6,9 @@ Every request of the user gets an ID, a priority and a status, kept in a ledger.
 ## Ledger file
 `.siska/requests.md` at the project root (create it on the first request; tell the user once, they decide whether to commit or git-ignore it).
 No project directory → keep the ledger in the conversation with the same format.
-At session start, if the file exists: read it first and show the open tickets.
+Closed tickets (✅/❌) move to `.siska/requests-archive.md` (automatic with the Claude Code hook; otherwise move them yourself), so the active file only holds open tickets.
+**Token economy**: append a new ticket without reading the file (`cat >> .siska/requests.md`); to update one, read only its lines (`grep -n "## T3" …`, then a targeted edit); duplicate check = `grep -i <keyword>` in both files, never a full read.
+At session start, if the file exists: show the open tickets.
 Claude Code plugin: enforced by hooks – each message injects the open tickets and this format; a response cannot end while the ledger was not updated since the message (max 2 reminders). Other agents: this rule only.
 
 ```markdown
@@ -46,7 +48,7 @@ Infer it, show it, the user corrects it (`t2 P1`).
 6. **Update** the ledger file whenever a status changes.
 
 ## End of every response
-Show the ledger summary: every ticket that is not closed, plus every ticket changed in this response.
+Compact table: tickets still open plus tickets changed in this response. Nothing open and nothing changed → one line "No open ticket.".
 
 ```markdown
 | ID | Request | P | Status | Next |

@@ -22,19 +22,26 @@ STATE="${SLD_STATE_DIR:-${TMPDIR:-/tmp}}/siska-ledger-${session:-default}"
 
 case "$MODE" in
   prompt)
-    echo 0 >"$STATE"   # marks the time of the user's message; 0 blocks so far
-    echo "siska-lead-developer ledger: record this user message in $LEDGER (references/requests.md): new ticket T<next>, or update the ticket it refers to (t<n>, duplicate, answer to a question). End the response with the ticket table."
-    echo "Ledger format, one section per ticket (keep exactly):"
-    echo "## T<n> · <short title>"
-    echo "- Status: <⬜ todo | 🔄 in progress | ✅ done | ❓ needs info | ❌ cancelled> · Priority: <P1|P2|P3> · Created: <date> · Updated: <date>"
-    echo "- Instructions: dated lines, in the user's words"
-    echo "- Result: what was done and how it was verified"
-    echo "- Question: open question, or –"
     if [ -f "$LEDGER" ]; then
-      open="$(awk '/^## T[0-9]+/{t=$0} /^- Status:/{ s=$0; sub(/^- Status: /,"",s); sub(/ ·.*/,"",s); if (t != "" && s !~ /(✅|❌)/) print t " — " s; t="" }' "$LEDGER")"
-      if [ -n "$open" ]; then echo "Open tickets:"; printf '%s\n' "$open" | sed 's/^## /- /'; else echo "Open tickets: none."; fi
+      # Move closed tickets (✅/❌) to the archive so the active file stays small.
+      ARCHIVE="$root/.siska/requests-archive.md"
+      awk -v arch="$ARCHIVE" '
+        /^## T[0-9]+/ { flush(); buf=$0 "\n"; closed=0; next }
+        buf != ""     { buf=buf $0 "\n"; if ($0 ~ /^- Status:/ && $0 ~ /(✅|❌)/) closed=1; next }
+                      { print }
+        function flush() { if (buf == "") return; if (closed) printf "%s", buf >> arch; else printf "%s", buf; buf="" }
+        END { flush() }' "$LEDGER" >"$LEDGER.tmp" && mv "$LEDGER.tmp" "$LEDGER"
+    fi
+    echo 0 >"$STATE"   # marks the time of the user's message; 0 blocks so far
+    echo "siska ledger: record this message in .siska/requests.md (new T<n>, or update the ticket it refers to). Append new tickets without reading the file; to change one, read only its lines. Duplicates: grep .siska/requests-archive.md. End with a compact table of open or changed tickets."
+    echo "Format: '## T<n> · <title>' / '- Status: <⬜ todo|🔄 in progress|✅ done|❓ needs info|❌ cancelled> · Priority: <P1-P3> · Created: <date> · Updated: <date>' / '- Instructions:' dated lines / '- Result:' / '- Question:'"
+    if [ -f "$LEDGER" ]; then
+      open="$(awk '/^## T[0-9]+/{t=$0} /^- Status:/{ s=$0; sub(/^- Status: /,"",s); sub(/ ·.*/,"",s); if (t != "") print t " — " s; t="" }' "$LEDGER")"
+      last="$(cat "$LEDGER" "$root/.siska/requests-archive.md" 2>/dev/null | sed -n 's/^## T\([0-9]*\).*/\1/p' | sort -n | tail -n 1)"
+      echo "Open: ${open:+$'\n'}${open:-none}" | sed 's/^## /- /'
+      echo "Last ID: T${last:-0}"
     else
-      echo "No ledger yet: create it with this request as T1."
+      echo "No ledger yet: create it, this request is T1."
     fi
     ;;
   stop)
