@@ -2,6 +2,12 @@
 
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), versions: [SemVer](https://semver.org/).
 
+## [1.1.1] - 2026-09-28
+### Fixed
+- `install.sh` refuses to install a copy into `.claude/skills` when the Claude Code plugin is installed.
+### Changed
+- README: `/plugin` install/uninstall steps and the marketplace source conflict error.
+
 ## [1.1.0] - 2026-09-28
 ### Added
 - Claude Code plugin (`.claude-plugin/`) with commands `:help`, `:audit-route [--filter]`, `:audit-package [--outdated]`, `:mcp`.
