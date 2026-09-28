@@ -57,6 +57,7 @@ claude plugin marketplace remove siska      # retire aussi le catalogue
 ## Autres agents (Codex, Gemini CLI, Copilot CLI…)
 
 Seul le skill principal est installé, sans les commandes `:xxx` qui sont propres à Claude Code.
+**Ne pas utiliser ce script pour Claude Code** : utilise le plugin. Le script refuse d'installer dans `.claude/skills` si le plugin y est déjà, pour éviter un doublon.
 
 ```bash
 bash scripts/install.sh                      # dans ~/.agents/skills (--target DIR pour un autre dossier)

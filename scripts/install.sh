@@ -17,6 +17,8 @@
 #                 anything else is left untouched. Backups (*.bak.*) are kept.
 #
 # Never overwrites silently: an existing install stops the script unless --force.
+# Claude Code: the plugin is the supported install (README). Installing into a
+# Claude Code skills directory while the plugin is installed is refused (duplicate).
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -76,6 +78,18 @@ fi
 TIMESTAMP="$(date +%Y%m%d%H%M%S)"
 conflicts=()
 { [ -e "$TARGET/$MAIN_NAME" ] || [ -L "$TARGET/$MAIN_NAME" ]; } && conflicts+=("$MAIN_NAME")
+
+# Claude Code reads .claude/skills, not ~/.agents/skills, and has its own plugin install.
+CLAUDE_HOME="${SLD_CLAUDE_HOME:-$HOME/.claude}"
+case "$TARGET" in
+  */.claude/skills|*/.claude/skills/)
+    if grep -q '"siska-lead-developer@' "$CLAUDE_HOME/plugins/installed_plugins.json" 2>/dev/null; then
+      sld_die "the siska-lead-developer plugin is already installed in Claude Code; this copy would duplicate it. Keep the plugin (update: /plugin), or uninstall it first."
+    fi
+    sld_warn "Claude Code: the plugin is recommended (/plugin marketplace add siska243/lead-developer, then /plugin install siska-lead-developer@siska); this copy has no /siska-lead-developer:<command> shortcuts." ;;
+  *)
+    sld_has_cmd claude && sld_warn "Claude Code does not read $TARGET. For Claude Code, use the plugin (README) instead of this script." ;;
+esac
 
 # 2. Plan
 mode="copy"; [ $LINK -eq 1 ] && mode="symlink"
