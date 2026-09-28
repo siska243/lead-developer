@@ -56,7 +56,10 @@ audit_dir() {
 
   if [ -f "$d/composer.json" ]; then
     if [ -f "$d/composer.lock" ]; then
-      run "$rel composer" "$d" composer composer audit --locked --no-interaction
+      # Composer >= 2.7 can also report abandoned packages.
+      local abandoned=()
+      composer audit --help 2>/dev/null | grep -q -- '--abandoned' && abandoned=(--abandoned=report)
+      run "$rel composer" "$d" composer composer audit --locked --no-interaction ${abandoned[@]+"${abandoned[@]}"}
     else
       sld_warn "[$rel] composer.json without composer.lock – cannot audit resolved versions"
     fi

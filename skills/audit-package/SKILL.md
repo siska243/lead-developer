@@ -1,14 +1,20 @@
 ---
 name: audit-package
-description: Vulnerability audit of the project's dependencies (composer, npm, pnpm, yarn, bun, pip).
+description: Dependency audit - vulnerabilities, abandoned or unmaintained packages, unused packages (composer, npm, pnpm, yarn, bun, pip).
 argument-hint: "[--outdated] [path]"
 disable-model-invocation: true
 ---
 
 Arguments: `$ARGUMENTS`
 
-1. Run `bash ${CLAUDE_SKILL_DIR}/../../scripts/security-audit.sh <path or .> [--outdated]` with the given arguments.
-2. Report, short:
-   - one table: `Package | Installed | Severity | Advisory | Fixed in | Direct/transitive`
-   - lines `SKIP` / `RESULT: no audit could run` = **not verified**, say so and say what to install.
-3. Propose fixes following `${CLAUDE_SKILL_DIR}/../../references/dependencies.md` (smallest fixing version, breaking changes, one package at a time). **Update nothing** without the user's approval; after an approved update, run the tests.
+Follow `${CLAUDE_SKILL_DIR}/../../references/dependencies.md`. Change nothing before the user approves.
+
+1. **Vulnerabilities**: `bash ${CLAUDE_SKILL_DIR}/../../scripts/security-audit.sh <path or .> [--outdated]`.
+2. **Maintenance** of every direct dependency (section "Maintenance status"): deprecated/abandoned, archived repo, last release date, replacement.
+3. **Unused** packages (section "Unused dependencies"): run the tool, then verify each candidate before listing it.
+4. **Report, short** – three tables:
+   - `Vulnerable: Package | Installed | Severity | Advisory | Fixed in`
+   - `At risk: Package | Last release | Status (deprecated/abandoned/archived/stale) | Replacement`
+   - `Unused: Package | Evidence it is unused | Safe to remove (yes/check)`
+   - `SKIP` / `no audit could run` = **not verified**: say so and what to install.
+5. Ask which packages to remove or update. Then do it one group at a time with the project's package manager, and run tests + build after each group.
