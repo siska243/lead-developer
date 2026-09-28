@@ -2,6 +2,11 @@
 
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), versions: [SemVer](https://semver.org/).
 
+## [1.2.0] - 2026-09-28
+### Added
+- `audit-package`: maintenance status of direct dependencies (deprecated, abandoned, archived, stale) and unused dependency detection (knip, composer-unused, deptry) with removal only after approval.
+- `security-audit.sh`: reports abandoned Composer packages (Composer >= 2.7).
+
 ## [1.1.1] - 2026-09-28
 ### Fixed
 - `install.sh` refuses to install a copy into `.claude/skills` when the Claude Code plugin is installed.

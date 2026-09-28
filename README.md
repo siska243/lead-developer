@@ -10,7 +10,7 @@ Fait travailler ton agent IA comme un **Lead Developer senior** : zéro régress
 | `/siska-lead-developer:siska-lead-developer <tâche>` | N'importe quelle tâche de dev (ticket, bug, TMA, review, nouveau projet, UI). Se déclenche aussi tout seul. |
 | `/siska-lead-developer:audit-route` | Audit sécurité de toutes les routes API |
 | `/siska-lead-developer:audit-route --orders` | Audit des routes qui contiennent `orders` |
-| `/siska-lead-developer:audit-package` | Vulnérabilités des dépendances (composer, npm, pnpm, yarn, bun, pip) |
+| `/siska-lead-developer:audit-package` | Dépendances : vulnérabilités, paquets abandonnés ou non maintenus, paquets inutilisés (désinstallés après ton accord) |
 | `/siska-lead-developer:audit-package --outdated` | Idem + paquets obsolètes |
 | `/siska-lead-developer:mcp <quoi exposer>` | Ajouter / auditer un serveur MCP |
 
