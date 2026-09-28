@@ -32,6 +32,8 @@ claude plugin marketplace add siska243/lead-developer
 claude plugin install siska-lead-developer@siska
 ```
 
+Erreur `Cannot add marketplace "siska": its network source differs…` : le catalogue `siska` est déjà déclaré depuis une autre source (par exemple un clone local). Lance `/plugin marketplace remove siska`, puis recommence.
+
 Depuis un clone local, remplace `siska243/lead-developer` par le chemin du dossier. Ensuite, redémarre Claude Code (ou lance `/reload-plugins`), puis tape `/siska-lead-developer:help`.
 
 ## Mettre à jour
