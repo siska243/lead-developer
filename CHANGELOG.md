@@ -2,6 +2,14 @@
 
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), versions: [SemVer](https://semver.org/).
 
+## [1.4.0] - 2026-09-28
+### Added
+- Commit gate: plugin `PreToolUse` hook runs `scripts/pre-commit-gate.sh` on every `git commit` and blocks it when tests, lint, secret or `.env` checks fail.
+- `/siska-lead-developer:check-code` command.
+- `check-project.sh --run-lint`: Pint, PHPStan, `composer lint`, npm `lint`/`typecheck` scripts, Ruff.
+- `.siska/checks`: project-declared check commands, replacing auto-detection.
+- `check-project.sh --scope front,back,mobile` and `check-code --front/--back/--mobile`; `.siska/checks` lines can be tagged `front:` / `back:` / `mobile:`; a scope with no command is reported as not verified.
+
 ## [1.3.0] - 2026-09-28
 ### Added
 - Request ledger (`references/requests.md`): every request gets an ID (T1…), priority (P1–P3) and status (todo, in progress, done, needs info, cancelled), stored in `.siska/requests.md`; duplicate check before redoing a done request; `t<n>` messages update a ticket; summary table at the end of each response.
