@@ -26,6 +26,7 @@ bash scripts/check-project.sh <project> --run-tests --run-lint
 ```
 Exit code 1 = commit refused: failing test, failing lint/type check, possible secret or tracked `.env`. Fix, re-run, then commit. Never bypass it on your own (`--no-verify`, `SISKA_SKIP_GATE=1`, skipping or weakening tests, editing linter config).
 **Skip only when the user explicitly asks for it in the current message** ("skip the check for this commit"): commit with `SISKA_SKIP_GATE=1 git commit …`, and say in the report that the checks were skipped and which ones were failing.
+On/off without disabling the plugin: `bash scripts/settings.sh <project> [--global] gate on|off` (project `.siska/settings` wins over `~/.siska/settings`); only when the user asks.
 Projects can declare their exact checks in `.siska/checks` (one shell command per line, run from the root; optional `front:` / `back:` / `mobile:` prefix); it replaces auto-detection.
 `--scope front,back,mobile` checks only those parts while working; the commit gate always checks everything.
 Enforcement: the Claude Code plugin hook runs this gate on every `git commit`; for any other agent (and for human commits) install the git hook: `bash scripts/install-git-hook.sh <project>` (never overwrites an existing hook or hook manager).

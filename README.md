@@ -17,6 +17,7 @@ Fait travailler ton agent IA comme un **Lead Developer senior** : zéro régress
 | `/siska-lead-developer:check-code --front` | Idem, uniquement le front (aussi `--back`, `--mobile`, cumulables) |
 | `/siska-lead-developer:document <fonctionnalité>` | Documentation : fonctionnelle, puis technique (appels API…) · `--functional`, `--api`, `--code` |
 | `/siska-lead-developer:skills` | Skills et MCP installés · `find <besoin>` · `vet <source>` · `install <source>` (seulement après ton oui) |
+| `/siska-lead-developer:settings gate off` | Désactive / réactive (`gate on`) le contrôle avant commit ; `ledger off` pour le suivi ; `--global` pour tous les projets |
 | `/siska-lead-developer:tickets` | Demandes en cours (T1, T2…) avec statut et priorité · `--all` pour toutes |
 | `/siska-lead-developer:tickets t2 done` | Modifier un ticket : `done`, `todo`, `progress`, `cancel`, `info`, `P1`–`P3`, ou ajouter une consigne |
 
@@ -36,6 +37,7 @@ Le plugin installe un hook : avant chaque `git commit` lancé par Claude, il ex�
   - **mobile** : Expo, React Native.
 - Pour choisir exactement quoi lancer, crée `.siska/checks` à la racine du projet, avec une commande par ligne. Tu peux étiqueter une ligne : `front: npm run lint`, `back: php artisan test`.
 - Le hook avant commit contrôle toujours tout. `check-code --front` sert à contrôler une seule partie pendant que tu travailles.
+- **Désactiver le contrôle** sans désactiver le plugin : `/siska-lead-developer:settings gate off`, puis `gate on` pour le réactiver. Le réglage vaut pour le projet (`.siska/settings`), ou pour tous tes projets avec `--global`. Tant qu'il est désactivé, chaque commit affiche un avertissement. Le suivi des demandes se désactive de la même façon : `settings ledger off`.
 - **Passer le contrôle** pour un commit précis :
   - demande-le à l'agent (« skip le contrôle pour ce commit ») : il committe avec `SISKA_SKIP_GATE=1 git commit …` et le signale dans son rapport. Il ne le fait jamais sans ta demande ;
   - ou lance toi-même `SISKA_SKIP_GATE=1 git commit -m "…"`. Avec le hook git (autres agents), `git commit --no-verify` marche aussi ;

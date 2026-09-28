@@ -2,6 +2,10 @@
 
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), versions: [SemVer](https://semver.org/).
 
+## [1.9.0] - 2026-09-28
+### Added
+- `/siska-lead-developer:settings` and `scripts/settings.sh`: turn the commit gate (`gate`) or the request ledger hooks (`ledger`) on/off per project (`.siska/settings`) or globally (`~/.siska/settings`), without disabling the plugin; a disabled gate is announced on every commit.
+
 ## [1.8.1] - 2026-09-28
 ### Changed
 - Lower token use of the request ledger: closed tickets are archived automatically by the prompt hook (`.siska/requests-archive.md`), new tickets are appended without reading the file, updates read only the ticket's lines, shorter hook text with the last ID, compact end-of-response table.

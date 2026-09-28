@@ -21,4 +21,5 @@ Reply with exactly this table, nothing else:
 | `/siska-lead-developer:tickets` | Open requests (T1, T2…) with status and priority · `--all` for every ticket |
 | `/siska-lead-developer:tickets t2 done` | Change a ticket: `done`, `todo`, `progress`, `cancel`, `info`, `P1`–`P3`, or add instructions |
 | `t3 <text>` (plain message) | Add instructions to ticket T3 |
+| `/siska-lead-developer:settings gate off` | Turn the commit gate off/on (`gate on`), or the ledger (`ledger off`); `--global` for all projects; no argument = status |
 | `/siska-lead-developer:help` | This list |

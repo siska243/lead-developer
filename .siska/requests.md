@@ -13,3 +13,10 @@
   - 2026-09-28: utiliser le moins de tokens possible avec une qualité de code élevée, vraiment
 - Result: archivage auto des tickets clos par le hook, ajout sans relecture, lecture ciblée, hook raccourci; fichier actif ~1265 → ~138 tokens; tests OK
 - Question: –
+
+## T13 · Activer / désactiver le hook pre-commit depuis le plugin
+- Status: ✅ done · Priority: P1 · Created: 2026-09-28 · Updated: 2026-09-28
+- Instructions:
+  - 2026-09-28: comment désactiver le hook pre-commit ; impossible depuis mon plugin, on doit pouvoir l'activer et le désactiver
+- Result: `settings.sh` + commande `settings` (gate/ledger, projet ou `--global`), hooks respectent le réglage ; 10 tests
+- Question: –

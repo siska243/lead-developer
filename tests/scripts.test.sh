@@ -273,6 +273,30 @@ if command -v git >/dev/null 2>&1; then
   check "inactive outside git repositories" test ! -e "$LS/siska-ledger-s2"
 fi
 
+# --- settings: turn the gate and the ledger on/off ---
+if command -v git >/dev/null 2>&1; then
+  ST="$TMP/settings"; SH="$TMP/settings-home"; mkdir -p "$ST/.siska" "$SH"; git -C "$ST" init -q
+  echo false >"$ST/.siska/checks"
+  out="$(SLD_HOME="$SH" bash "$REPO/scripts/settings.sh" "$ST")"
+  assert_contains "gate on by default" "$out" "commit gate: on"
+  SLD_HOME="$SH" bash "$REPO/scripts/settings.sh" "$ST" gate off >/dev/null
+  err="$(SLD_HOME="$SH" bash "$REPO/scripts/pre-commit-gate.sh" "$ST" </dev/null 2>&1)" && s=0 || s=$?
+  assert_status "gate off lets the commit through" 0 "$s"
+  assert_contains "gate off is announced" "$err" "OFF"
+  SLD_HOME="$SH" bash "$REPO/scripts/settings.sh" "$ST" gate on >/dev/null
+  SLD_HOME="$SH" bash "$REPO/scripts/pre-commit-gate.sh" "$ST" </dev/null >/dev/null 2>&1 && s=0 || s=$?
+  assert_status "gate back on blocks again" 2 "$s"
+  SLD_HOME="$SH" bash "$REPO/scripts/settings.sh" "$ST" --global ledger off >/dev/null
+  check "global setting written" grep -q "^ledger=off$" "$SH/.siska/settings"
+  out="$(printf '{"cwd":"%s","session_id":"s9"}' "$ST" | SLD_HOME="$SH" SLD_STATE_DIR="$TMP" bash "$REPO/scripts/ledger-hook.sh" prompt)"
+  check "ledger off silences the prompt hook" test -z "$out"
+  SLD_HOME="$SH" bash "$REPO/scripts/settings.sh" "$ST" ledger on >/dev/null
+  out="$(SLD_HOME="$SH" bash "$REPO/scripts/settings.sh" "$ST")"
+  assert_contains "project value wins over global" "$out" "ledger:      on"
+  SLD_HOME="$SH" bash "$REPO/scripts/settings.sh" "$ST" gate maybe >/dev/null 2>&1 && s=0 || s=$?
+  assert_status "invalid value rejected" 2 "$s"
+fi
+
 # --- install: Claude Code target with the plugin already installed is refused ---
 C="$TMP/home/.claude"; mkdir -p "$C/plugins"
 echo '{"plugins":{"siska-lead-developer@siska":[{}]}}' >"$C/plugins/installed_plugins.json"
