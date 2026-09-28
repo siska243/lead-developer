@@ -31,6 +31,13 @@ dir="${dir:-${1:-$PWD}}"
 git -C "$dir" rev-parse --is-inside-work-tree >/dev/null 2>&1 || exit 0
 root="$(git -C "$dir" rev-parse --show-toplevel)"
 
+# shellcheck source=lib.sh
+. "$SCRIPT_DIR/lib.sh"
+if [ "$(sld_setting "$root" commit-gate)" = off ]; then
+  echo "siska commit gate is OFF (settings): tests, lint and secret checks were NOT run. Turn it back on: settings gate on." >&2
+  exit 0
+fi
+
 if report="$(bash "$SCRIPT_DIR/check-project.sh" "$root" --run-tests --run-lint 2>&1)"; then
   exit 0
 fi

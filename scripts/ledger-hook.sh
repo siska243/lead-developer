@@ -16,6 +16,10 @@ field() { printf '%s' "$input" | sed -n 's/.*"'"$1"'"[[:space:]]*:[[:space:]]*"\
 
 dir="$(field cwd)"; dir="${dir:-$PWD}"
 root="$(git -C "$dir" rev-parse --show-toplevel 2>/dev/null)" || exit 0
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=lib.sh
+. "$SCRIPT_DIR/lib.sh"
+[ "$(sld_setting "$root" ledger)" = off ] && exit 0
 LEDGER="$root/.siska/requests.md"
 session="$(field session_id | tr -cd '[:alnum:]_-')"
 STATE="${SLD_STATE_DIR:-${TMPDIR:-/tmp}}/siska-ledger-${session:-default}"
