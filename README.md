@@ -13,8 +13,21 @@ Fait travailler ton agent IA comme un **Lead Developer senior** : zéro régress
 | `/siska-lead-developer:audit-package` | Dépendances : vulnérabilités, paquets abandonnés ou non maintenus, paquets inutilisés (désinstallés après ton accord) |
 | `/siska-lead-developer:audit-package --outdated` | Idem + paquets obsolètes |
 | `/siska-lead-developer:mcp <quoi exposer>` | Ajouter / auditer un serveur MCP |
+| `/siska-lead-developer:tickets` | Demandes en cours (T1, T2…) avec statut et priorité · `--all` pour toutes |
+| `/siska-lead-developer:tickets t2 done` | Modifier un ticket : `done`, `todo`, `progress`, `cancel`, `info`, `P1`–`P3`, ou ajouter une consigne |
 
 Les audits ne modifient rien : ils rendent un rapport, puis te demandent quoi corriger.
+
+## Suivi des demandes
+
+Chaque demande reçoit un numéro (`T1`, `T2`…), une priorité (`P1` urgent, `P2` normal, `P3` secondaire) et un statut :
+⬜ à faire · 🔄 en cours · ✅ fait · ❓ besoin d'info · ❌ annulé.
+
+- Écris `t3 <consigne>` pour compléter le ticket T3, et `t2 P1` pour changer sa priorité.
+- Une nouvelle demande ne remplace pas les précédentes : elle entre dans la file.
+- Une demande déjà faite n'est pas refaite : l'agent te demande ce qu'il faut améliorer.
+- Chaque réponse se termine par le tableau des tickets.
+- Le suivi est enregistré dans `.siska/requests.md`, à la racine du projet. À toi de décider si tu le commits ou si tu l'ajoutes au `.gitignore`.
 
 ## Installer (Claude Code)
 

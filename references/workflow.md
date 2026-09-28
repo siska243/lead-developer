@@ -24,6 +24,7 @@ Search every usage (`grep -rn`, IDE references, code-graph tools if available) b
 ## 4. Plan
 Required fields: goal · scope (in / out) · files · dependencies · risks · strategy · tests · anti-regression checks · expected result.
 Trivial change → 3 lines. Complex change → detailed, validated with the user when it changes behavior, data or contracts.
+Before acting, explain simply what you will do and why: 2–5 plain sentences a non-developer can follow, no unexplained jargon.
 
 ## 5. Anti-regression matrix
 Write "what could break?" then verify each item.
@@ -41,6 +42,8 @@ Minimum complete change. Project conventions first. See `clean-code.md`.
 
 ## 7. Verify
 - Existing test suite (see `testing.md`) + new tests for new behavior and edge cases.
+- Project linters, formatters and static analysis on changed files (see `clean-code.md` → Uniformity).
+- UI: no new hardcoded color/spacing/font, no duplicate component (see `design-system.md` → Strict rules).
 - Each anti-regression item checked, with evidence.
 - Security (`security.md`) and dependency audit when relevant.
 - UI states (`ux.md`) when UI changed. Performance (`performance.md`) when queries, rendering or payloads changed.
@@ -55,9 +58,9 @@ Report: what changed, how it was verified (commands + results), limitations, out
 ## Delivery checklist
 **Analysis** – need understood · project analyzed · existing code searched · constraints and risks identified
 **Plan** – plan when needed · scope defined · anti-regression strategy defined
-**Implementation** – minimal code · clean code · nothing invented · no workaround · no voluntary tech debt
+**Implementation** – minimal code · clean code · uniform with the codebase (one way to do one thing) · linters pass · nothing invented · no workaround · no voluntary tech debt
 **Security** – inputs validated · permissions checked · secrets protected · dependencies audited
-**UI/UX** – design system and brand respected · coherent UX · loading/error/empty/disabled states · responsive · accessible · motion coherent if used
+**UI/UX** – design system and brand respected to the letter (tokens only, one component per purpose) · coherent UX · loading/error/empty/disabled states · responsive · accessible · motion coherent if used
 **Performance** – queries · API calls · rendering · bundle when relevant · animations when relevant
 **Tests** – existing tests run · new tests where needed · regression verified · edge cases verified
 **Review** – diff checked · no useless change or file · no secret · no unjustified out-of-scope change

@@ -9,7 +9,7 @@ they use `${CLAUDE_SKILL_DIR}` to reach the core files.
 | Skill need | Claude Code |
 |------------|-------------|
 | Plan mode | `EnterPlanMode` / `ExitPlanMode` for any non-trivial task |
-| Team mode | `Agent` tool: `Explore` (read-only search), `Plan` (architecture), `general-purpose` (implementation); run independent agents in parallel |
+| Sub-agents | `Agent` tool: `Explore` (read-only search), `Plan` (architecture), `general-purpose` (implementation); independent agents in one message run in parallel; `model: "haiku"` or `"sonnet"` for simple search/summary tasks. Multi-agent `Workflow` only when the user explicitly asks for it |
 | Isolation | `EnterWorktree` / `isolation: "worktree"` for risky or parallel work |
 | Ask user | `AskUserQuestion` for decisions that belong to the user |
 | Framework docs | `WebFetch` / `WebSearch` on official docs for the installed version |
@@ -31,6 +31,7 @@ they use `${CLAUDE_SKILL_DIR}` to reach the core files.
 | Expo / React Native | `expo:*` skills (`expo:expo-router`, `expo:expo-upgrade`, `expo:expo-ui`, `expo:eas-*`…) |
 | Monitoring | `sentry-cli` |
 | Delivery | `superpowers:finishing-a-development-branch`, `ship` |
+| Human-sounding docs, PR and UI copy | `humanizer` |
 
 ## MCP servers (when connected)
 | Need | MCP |

@@ -14,4 +14,7 @@ Reply with exactly this table, nothing else:
 | `/siska-lead-developer:audit-package` | Dependencies: vulnerabilities, abandoned/unmaintained, unused (then removal on approval) |
 | `/siska-lead-developer:audit-package --outdated` | Same + outdated packages |
 | `/siska-lead-developer:mcp <what to expose>` | Add / extend / audit an MCP server in the app |
+| `/siska-lead-developer:tickets` | Open requests (T1, T2…) with status and priority · `--all` for every ticket |
+| `/siska-lead-developer:tickets t2 done` | Change a ticket: `done`, `todo`, `progress`, `cancel`, `info`, `P1`–`P3`, or add instructions |
+| `t3 <text>` (plain message) | Add instructions to ticket T3 |
 | `/siska-lead-developer:help` | This list |
