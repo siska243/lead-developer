@@ -251,7 +251,7 @@ if command -v git >/dev/null 2>&1; then
   LH="$TMP/ledgerhook"; LS="$TMP/ledgerstate"; mkdir -p "$LH" "$LS"; git -C "$LH" init -q
   pl="{\"cwd\":\"$LH\",\"session_id\":\"s1\"}"
   out="$(printf '%s' "$pl" | SLD_STATE_DIR="$LS" bash "$REPO/scripts/ledger-hook.sh" prompt)"
-  assert_contains "prompt hook asks to create the ledger" "$out" "create it with this request as T1"
+  assert_contains "prompt hook asks to create the ledger" "$out" "this request is T1"
   printf '%s' "$pl" | SLD_STATE_DIR="$LS" bash "$REPO/scripts/ledger-hook.sh" stop >/dev/null 2>&1 && s=0 || s=$?
   assert_status "stop blocked while the ledger is missing" 2 "$s"
   mkdir -p "$LH/.siska"; sleep 1
@@ -262,6 +262,10 @@ if command -v git >/dev/null 2>&1; then
   out="$(printf '%s' "$pl" | SLD_STATE_DIR="$LS" bash "$REPO/scripts/ledger-hook.sh" prompt)"
   assert_contains "prompt hook lists open tickets" "$out" "T1 · Login — 🔄 in progress"
   check "closed tickets not listed" not_contains "$out" "T2 · Old"
+  check "closed ticket archived" grep -q "T2 · Old" "$LH/.siska/requests-archive.md"
+  check "archived ticket removed from the active file" not_contains "$(cat "$LH/.siska/requests.md")" "T2 · Old"
+  check "open ticket kept in the active file" grep -q "T1 · Login" "$LH/.siska/requests.md"
+  assert_contains "last ID counts archived tickets" "$out" "Last ID: T2"
   for _ in 1 2; do printf '%s' "$pl" | SLD_STATE_DIR="$LS" bash "$REPO/scripts/ledger-hook.sh" stop >/dev/null 2>&1 || true; done
   printf '%s' "$pl" | SLD_STATE_DIR="$LS" bash "$REPO/scripts/ledger-hook.sh" stop >/dev/null 2>&1 && s=0 || s=$?
   assert_status "no endless loop: third stop is allowed" 0 "$s"
