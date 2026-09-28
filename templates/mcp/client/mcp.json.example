@@ -1,0 +1,17 @@
+{
+  "mcpServers": {
+    "app-local": {
+      "type": "stdio",
+      "command": "node",
+      "args": ["mcp/dist/stdio.js"],
+      "env": {
+        "MCP_STDIO_ACTOR_ID": "local-dev-user",
+        "MCP_STDIO_SCOPES": "orders.read"
+      }
+    },
+    "app-remote": {
+      "type": "http",
+      "url": "https://api.example.test/mcp"
+    }
+  }
+}
