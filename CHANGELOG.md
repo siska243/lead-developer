@@ -2,6 +2,12 @@
 
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), versions: [SemVer](https://semver.org/).
 
+## [1.5.0] - 2026-09-28
+### Added
+- Mandatory feature documentation (`references/documentation.md`): functional page, then technical (API calls, data, jobs, security), verified against the code, human-sounding; part of the delivery checklist.
+- `/siska-lead-developer:document [--functional|--api|--code]`.
+- OpenAPI guidance per stack (FastAPI, Scramble/Scribe, API Platform/Nelmio, @nestjs/swagger, swagger-jsdoc) and spec lint with `@redocly/cli`.
+
 ## [1.4.0] - 2026-09-28
 ### Added
 - Commit gate: plugin `PreToolUse` hook runs `scripts/pre-commit-gate.sh` on every `git commit` and blocks it when tests, lint, secret or `.env` checks fail.

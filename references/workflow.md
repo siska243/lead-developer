@@ -64,6 +64,7 @@ Report: what changed, how it was verified (commands + results), limitations, out
 **Performance** – queries · API calls · rendering · bundle when relevant · animations when relevant
 **Tests** – existing tests run · new tests where needed · regression verified · edge cases verified
 **Review** – diff checked · no useless change or file · no secret · no unjustified out-of-scope change
+**Documentation** – new/changed feature documented: functional, then technical (API calls, data, jobs, permissions) · OpenAPI updated if the project has one · verified against the code (`documentation.md`)
 **Delivery** – really finished · docs updated · limitations reported · result verified
 
 ## Quality gate

@@ -15,6 +15,7 @@ Fait travailler ton agent IA comme un **Lead Developer senior** : zéro régress
 | `/siska-lead-developer:mcp <quoi exposer>` | Ajouter / auditer un serveur MCP |
 | `/siska-lead-developer:check-code` | Contrôle avant commit : tests, linters, secrets, `.env`. Commit refusé si quelque chose échoue |
 | `/siska-lead-developer:check-code --front` | Idem, uniquement le front (aussi `--back`, `--mobile`, cumulables) |
+| `/siska-lead-developer:document <fonctionnalité>` | Documentation : fonctionnelle, puis technique (appels API…) · `--functional`, `--api`, `--code` |
 | `/siska-lead-developer:tickets` | Demandes en cours (T1, T2…) avec statut et priorité · `--all` pour toutes |
 | `/siska-lead-developer:tickets t2 done` | Modifier un ticket : `done`, `todo`, `progress`, `cancel`, `info`, `P1`–`P3`, ou ajouter une consigne |
 
@@ -36,6 +37,15 @@ Le plugin installe un hook : avant chaque `git commit` lancé par Claude, il ex�
 - Le hook avant commit contrôle toujours tout. `check-code --front` sert à contrôler une seule partie pendant que tu travailles.
 - Les commits que tu fais toi-même dans ton terminal ne passent pas par ce hook.
 - Si les contrôles durent plus de 10 minutes, le hook s'arrête sans bloquer : lance alors `/siska-lead-developer:check-code` avant de committer.
+
+## Documentation
+
+Chaque nouvelle fonctionnalité, ou fonctionnalité modifiée, est documentée dans le même ticket. Sans sa documentation, le ticket n'est pas terminé.
+
+1. **Fonctionnel** : à quoi elle sert, pour qui, le parcours, les règles, les écrans, les erreurs.
+2. **Technique** : les appels API (route, authentification, paramètres, réponses, erreurs, exemples), les données, les jobs, les permissions.
+
+Tout est vérifié dans le code, rien n'est inventé, et le texte est écrit comme par un humain. La fiche va dans le dossier de documentation du projet, ou dans `docs/features/` s'il n'en a pas. Le fichier OpenAPI est mis à jour s'il existe.
 
 ## Suivi des demandes
 

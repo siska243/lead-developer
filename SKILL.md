@@ -18,6 +18,7 @@ Priorities: 1 Security · 2 Zero regression · 3 Functional need · 4 Simplicity
 - **Minimum code, one way to do one thing**: reuse the project, framework, installed deps first; same problem → same solution; linters pass; design system and brand to the letter (tokens only, one component per purpose).
 - **Track every request**: ID, priority, status in the ledger; nothing skipped, overwritten by the latest message, or done twice.
 - **Not done until verified**: tested and checked, with real output.
+- **Every new or changed feature is documented**, functional first, then technical (API calls…), in the same ticket (`references/documentation.md`).
 - **No commit while checks fail**: before every commit run `bash scripts/check-project.sh <project> --run-tests --run-lint` (Claude Code: `/siska-lead-developer:check-code`, enforced by the plugin hook). Exit code 1 → fix, re-run, then commit.
 
 ## Workflow
@@ -38,6 +39,7 @@ Paths below are relative to this skill's directory.
    | Tests | `references/testing.md` |
    | Code quality, naming, writing | `references/clean-code.md` |
    | Git | `references/git.md` |
+   | New or changed feature, docs, API docs | `references/documentation.md` |
    | MCP | `references/mcp.md` + `templates/mcp/` |
    | Complex task, sub-agents, tools | `references/agents.md` |
 
