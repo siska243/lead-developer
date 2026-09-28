@@ -18,6 +18,15 @@ Les audits ne modifient rien : ils rendent un rapport, puis te demandent quoi co
 
 ## Installer (Claude Code)
 
+Dans Claude Code :
+
+```text
+/plugin marketplace add siska243/lead-developer
+/plugin install siska-lead-developer@siska
+```
+
+Ou depuis le terminal :
+
 ```bash
 claude plugin marketplace add siska243/lead-developer
 claude plugin install siska-lead-developer@siska
@@ -35,6 +44,10 @@ claude plugin update siska-lead-developer@siska
 Avec une installation depuis un clone local : `git pull`, puis `/reload-plugins`.
 
 ## Désinstaller
+
+Dans Claude Code : `/plugin`, onglet **Installed**, `siska-lead-developer`, puis **Uninstall**.
+
+Ou depuis le terminal :
 
 ```bash
 claude plugin uninstall siska-lead-developer@siska
