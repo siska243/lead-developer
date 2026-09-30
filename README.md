@@ -257,12 +257,44 @@ Depuis un clone local, remplace `siska243/lead-developer` par le chemin du dossi
 
 ## Mettre à jour
 
+Deux commandes, dans cet ordre : la première récupère le catalogue à jour depuis GitHub, la seconde installe la nouvelle version du plugin.
+
 ```bash
 claude plugin marketplace update siska
 claude plugin update siska-lead-developer@siska
 ```
 
+Puis **redémarre Claude Code**, ou tape `/reload-plugins` dans une session ouverte. Tant que tu ne l'as pas fait, la session garde l'ancienne version, et ses hooks aussi.
+
+Pour vérifier la version installée :
+
+```bash
+claude plugin list          # siska-lead-developer@siska · Version: …
+```
+
+Dans Claude Code, tu peux aussi passer par `/plugin`, onglet **Installed**, puis `siska-lead-developer`.
+
 Avec une installation depuis un clone local : `git pull`, puis `/reload-plugins`.
+
+## Désactiver et réactiver
+
+Désactiver garde le plugin installé : ses commandes, ses règles et ses hooks (contrôle avant commit, suivi des demandes) s'arrêtent jusqu'à la réactivation.
+
+```bash
+claude plugin disable siska-lead-developer@siska
+claude plugin enable siska-lead-developer@siska
+```
+
+- `--scope user|project|local` choisit où le réglage s'applique : pour toi partout, pour tout le monde sur ce projet, ou seulement ta copie de ce projet. Sans l'option, la portée de l'installation est détectée.
+- Dans Claude Code : `/plugin`, onglet **Installed**, `siska-lead-developer`, puis **Disable** ou **Enable**.
+- Redémarre ensuite, ou tape `/reload-plugins`.
+
+Pour couper seulement une partie, sans désactiver le plugin :
+- le contrôle avant commit : `/siska-lead-developer:settings gate off`, puis `gate on` ;
+- le suivi des demandes : `/siska-lead-developer:settings ledger off`, puis `ledger on` ;
+- `--global` applique le réglage à tous tes projets.
+
+Le scan de secrets et le blocage des co-auteurs IA restent actifs avec `gate off`. Seule la désactivation du plugin les arrête.
 
 ## Désinstaller
 
