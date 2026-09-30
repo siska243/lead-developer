@@ -162,6 +162,34 @@ if command -v git >/dev/null 2>&1; then
   out="$(scan)" || true
   assert_contains "leak reported with its file" "$out" "pay.js:"
 
+  # --history and --range: a secret committed then deleted is still found, masked, with its commit.
+  HS="$TMP/hist"; mkdir -p "$HS"; git -C "$HS" init -q
+  gc() { git -C "$HS" -c user.email=t@t -c user.name=t commit -qm "$1"; }
+  echo x >"$HS/a"; git -C "$HS" add a; gc init
+  base="$(git -C "$HS" rev-parse HEAD)"
+  printf 'const k = "sk_''live_0123456789abcdefABCD";\n' >"$HS/pay.js"; git -C "$HS" add pay.js; gc leak
+  leak_commit="$(git -C "$HS" rev-parse --short HEAD)"
+  git -C "$HS" rm -q pay.js; gc cleanup
+  bash "$REPO/scripts/secret-scan.sh" "$HS" >/dev/null 2>&1 && s=0 || s=$?
+  assert_status "deleted secret not in the working changes" 0 "$s"
+  out="$(bash "$REPO/scripts/secret-scan.sh" "$HS" --history 2>&1)" && s=0 || s=$?
+  assert_status "history scan finds a deleted secret" 1 "$s"
+  assert_contains "history names commit and file:line" "$out" "$leak_commit pay.js:1"
+  check "history masks the value" not_contains "$out" "0123456789abcdefABCD"
+  assert_contains "history asks to rotate" "$out" "rotate"
+  bash "$REPO/scripts/secret-scan.sh" "$HS" --range "$base..HEAD" >/dev/null 2>&1 && s=0 || s=$?
+  assert_status "range scan ignores a secret added and removed inside the range" 0 "$s"
+  bash "$REPO/scripts/secret-scan.sh" "$HS" --range "$base..$leak_commit" >/dev/null 2>&1 && s=0 || s=$?
+  assert_status "range scan finds the secret of its commits" 1 "$s"
+  bash "$REPO/scripts/secret-scan.sh" "$HS" --range nope..HEAD >/dev/null 2>&1 && s=0 || s=$?
+  assert_status "range with an unknown commit is a usage error" 2 "$s"
+  mkdir -p "$HS/.siska"; printf '# fake key reviewed\n%s pay.js:1\n' "$leak_commit" >"$HS/.siska/secrets-allow"
+  bash "$REPO/scripts/secret-scan.sh" "$HS" --history >/dev/null 2>&1 && s=0 || s=$?
+  assert_status "reviewed location in .siska/secrets-allow is ignored" 0 "$s"
+  echo 'DB_PASSWORD=x' >"$HS/.env"; git -C "$HS" add -f .env; gc env; git -C "$HS" rm -q --cached .env; gc unenv
+  out="$(bash "$REPO/scripts/secret-scan.sh" "$HS" --history 2>&1)" || true
+  assert_contains "history finds a .env committed once" "$out" "environment file(s) in git history"
+
   # Commit gate: the secret scan still runs when the gate is skipped or off.
   echo true >"$SS/.gate-ok"; mkdir -p "$SS/.siska"; echo true >"$SS/.siska/checks"
   err="$(SISKA_SKIP_GATE=1 bash "$REPO/scripts/pre-commit-gate.sh" "$SS" </dev/null 2>&1)" && s=0 || s=$?
