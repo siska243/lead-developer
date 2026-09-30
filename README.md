@@ -16,7 +16,7 @@ Fait travailler ton agent IA comme un **Lead Developer senior** : zéro régress
 | `/siska-lead-developer:optimize https://app.local/orders` | Tu donnes le lien d'une page : il la scanne, te fait un résumé et un plan, l'applique sur une branche `perf/` (les points à risque attendent ton oui), puis montre avant → après |
 | `/siska-lead-developer:optimize com.societe.app --flow .maestro/orders.yaml` | Mobile : mesure l'app sur un téléphone ou un émulateur (démarrage, images saccadées, mémoire), résumé, plan appliqué, avant → après |
 | `/siska-lead-developer:optimize front --orders` | Seulement certaines parties (`api`, `front`, `back`, `dead`, cumulables), seulement ce qui contient `orders` |
-| `/siska-lead-developer:api-docs` | Doc d'API façon Postman : page interactive pour lire et envoyer des requêtes, collection Postman (Postman, Insomnia, Bruno), champs envoyés et reçus avec type, obligatoire, défaut, valeurs possibles |
+| `/siska-lead-developer:api-docs` | Doc d'API comme API Platform, aux couleurs de ton site : lire et envoyer des requêtes, servie par l'app ou partagée, exports (collection et environnement Postman, OpenAPI pour Insomnia, Bruno, Hoppscotch), champs envoyés et reçus avec type, obligatoire, défaut, valeurs possibles |
 | `/siska-lead-developer:data-model` | Structure de données : explorateur interactif (zoom, déplacement, rotation, recherche, focus sur une table et ses voisines) et doc avec diagramme ER ; signale les tables sans clé primaire et les clés étrangères sans index |
 | `/siska-lead-developer:mcp <quoi exposer>` | Ajouter / auditer un serveur MCP |
 | `/siska-lead-developer:check-code` | Contrôle avant commit : tests, linters, secrets et clés en dur, `.env`. Commit refusé si quelque chose échoue |
@@ -154,7 +154,13 @@ Tout est vérifié dans le code, rien n'est inventé, et le texte est écrit com
 
 ## Documentation de l'API et structure de données
 
-### Doc d'API façon Postman (`api-docs`)
+### Doc d'API comme API Platform (`api-docs`)
+
+**Aux couleurs de ton site** : la couleur de marque est lue dans ton front (variable CSS `--primary` ou `--brand`, `tailwind.config`, `theme-color`), avec ton logo et ta police si tu les donnes. Siska dit d'où vient la couleur ; s'il n'en trouve pas, il reste neutre. Le thème clair ou sombre suit celui de la personne qui lit.
+
+**Exports dans la page** : collection Postman, environnement Postman (`baseUrl`, et `token` vide à remplir chez toi) et OpenAPI. Insomnia, Bruno et Hoppscotch importent ces fichiers. Dans une page partagée (artifact), les exports deviennent « Copier ».
+
+**Servie par ton app**, comme API Platform : les fichiers vont dans `public/docs/api/`, et `--spec-url /docs/api.json` fait lire la spec en direct depuis le générateur, pour qu'elle soit toujours à jour. Siska demande si la doc doit rester derrière ton authentification ou hors production : une doc d'API interne n'a rien à faire en accès public.
 
 À partir du fichier OpenAPI du projet, trois choses :
 - **une page interactive** (`index.html`) : chaque route avec ce qu'elle accepte et ce qu'elle renvoie, un bouton **Test Request** et un client d'API pour envoyer de vraies requêtes, avec ton token saisi dans la page, jamais enregistré ;
@@ -179,7 +185,8 @@ Pour partager la doc, publie-la en page (artifact) : elle se lit partout, mais s
 Si ton dépôt contient déjà une collection Postman, Insomnia ou Bruno, c'est celle-là qui est mise à jour.
 
 ```bash
-bash scripts/api-docs.sh openapi.json --out docs/api --base-url http://localhost:8000/api
+bash scripts/api-docs.sh openapi.json --out docs/api --base-url http://localhost:8000/api --project ../mon-front
+bash scripts/api-docs.sh openapi.json --out public/docs/api --spec-url /docs/api.json --brand-color '#0e7c66' --logo public/logo.svg
 ```
 
 ### Structure de données (`data-model`)

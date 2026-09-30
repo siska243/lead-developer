@@ -417,6 +417,20 @@ JSON
   check "nested array fields flattened" grep -q '`items\[\].quantity`' "$TMP/apidocs/api-structures.md"
   check "interactive page pins its library" grep -q '@scalar/api-reference@1.72.3' "$TMP/apidocs/index.html"
   check "shared page has no document skeleton" not_contains "$(head -c 100 "$TMP/apidocs/artifact.html")" "<!doctype"
+  E="$TMP/apidocs/shop-api.postman_environment.json"
+  check "postman environment written" grep -q '"key": "baseUrl"' "$E"
+  check "environment token is an empty secret" grep -q '"value": "",' "$E"
+  check "page offers the exports" grep -q 'data-file="environment"' "$TMP/apidocs/index.html"
+  mkdir -p "$TMP/brandproj/src/styles"; printf ':root {\n  --primary: #0e7c66;\n}\n' >"$TMP/brandproj/src/styles/app.css"
+  out="$(bash "$REPO/scripts/api-docs.sh" "$TMP/openapi.json" --out "$TMP/apibrand" --project "$TMP/brandproj" 2>&1)"
+  assert_contains "brand colour read from the project" "$out" "#0e7c66 – CSS variable in src/styles/app.css"
+  check "brand colour applied to the page" grep -q -- '--brand: #0e7c66' "$TMP/apibrand/index.html"
+  out="$(bash "$REPO/scripts/api-docs.sh" "$TMP/openapi.json" --out "$TMP/apineutral" --project "$TMP/authsite" 2>&1)"
+  assert_contains "no brand colour: neutral and said so" "$out" "neutral default"
+  bash "$REPO/scripts/api-docs.sh" "$TMP/openapi.json" --out "$TMP/apibad" --brand-color 'red;}body{display:none' >/dev/null 2>&1 && s=0 || s=$?
+  assert_status "CSS injection in the brand colour is refused" 2 "$s"
+  bash "$REPO/scripts/api-docs.sh" "$TMP/openapi.json" --out "$TMP/apibad" --spec-url 'javascript:alert(1)' >/dev/null 2>&1 && s=0 || s=$?
+  assert_status "non-http spec URL is refused" 2 "$s"
   echo '{"swagger":"2.0","paths":{}}' >"$TMP/sw.json"
   bash "$REPO/scripts/api-docs.sh" "$TMP/sw.json" --out "$TMP/sw" >/dev/null 2>&1 && s=0 || s=$?
   assert_status "Swagger 2.0 is refused with a hint" 2 "$s"

@@ -3,19 +3,27 @@
 # Postman collection, and the data structures of every endpoint (what it takes, what it returns).
 #
 # Usage: bash api-docs.sh <openapi.json|openapi.yaml> --out DIR [--base-url URL] [--title TEXT] [--report FILE]
+#                         [--project DIR] [--brand-color COLOR] [--logo FILE] [--font FAMILY] [--spec-url URL]
 #
 # Writes into DIR:
 #   index.html                     interactive reference with a request client (Scalar, pinned
-#                                  version): open it in a browser to read and "Test Request"
+#                                  version) under a bar in the project's colours with exports
+#                                  (Postman collection, Postman environment, OpenAPI): open it, or
+#                                  serve it from the app (e.g. public/docs/api) like API Platform
 #   artifact.html                  the same page as a body for a shared rich page (read-only there:
 #                                  a shared page cannot call your API)
-#   <name>.postman_collection.json Postman v2.1 collection (also imported by Insomnia and Bruno):
+#   <name>.postman_environment.json baseUrl and an empty secret token, for Postman environments
+#   <name>.postman_collection.json Postman v2.1 collection (also imported by Insomnia, Bruno, Hoppscotch):
 #                                  one folder per tag, {{baseUrl}} and {{token}} variables, bodies
 #                                  from the spec's examples or generated from its schemas
 #   api-structures.md              per endpoint: parameters, request body fields and response fields
 #                                  with type, required, default, allowed values, format, example
 # The OpenAPI file comes from the project's own generator (references/documentation.md);
 # nothing is invented here: every field, type and default is read from the spec.
+# Colours: --brand-color (any CSS colour), else read from --project: CSS variables --primary /
+# --color-primary / --brand, tailwind.config "primary", <meta name="theme-color">; else neutral.
+# --logo embeds a local image; --font sets the font family; --spec-url makes the page load the live
+# spec served by the app's generator (always in sync) instead of the embedded copy.
 # No token or secret is ever written: {{token}} stays empty in the collection.
 # Exit code: 0 written, 2 usage error or invalid spec.
 set -uo pipefail
@@ -24,20 +32,30 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck source=lib.sh
 . "$SCRIPT_DIR/lib.sh"
 
-SPEC="" OUT="" BASE="" TITLE="" REPORT_OUT="" NEXT=""
+SPEC="" OUT="" BASE="" TITLE="" REPORT_OUT="" PROJECT="" BRAND="" LOGO="" FONT="" SPEC_URL="" NEXT=""
 for arg in "$@"; do
   case "$NEXT" in
     out) OUT="$arg"; NEXT=""; continue ;;
     base) BASE="$arg"; NEXT=""; continue ;;
     title) TITLE="$arg"; NEXT=""; continue ;;
     report) REPORT_OUT="$arg"; NEXT=""; continue ;;
+    project) PROJECT="$arg"; NEXT=""; continue ;;
+    brand) BRAND="$arg"; NEXT=""; continue ;;
+    logo) LOGO="$arg"; NEXT=""; continue ;;
+    font) FONT="$arg"; NEXT=""; continue ;;
+    specurl) SPEC_URL="$arg"; NEXT=""; continue ;;
   esac
   case "$arg" in
-    -h|--help) sed -n '2,24p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
+    -h|--help) sed -n '2,32p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
     --out) NEXT=out ;;
     --base-url) NEXT=base ;;
     --title) NEXT=title ;;
     --report) NEXT=report ;;
+    --project) NEXT=project ;;
+    --brand-color) NEXT=brand ;;
+    --logo) NEXT=logo ;;
+    --font) NEXT=font ;;
+    --spec-url) NEXT=specurl ;;
     -*) sld_die "unknown option: $arg" ;;
     *) SPEC="$arg" ;;
   esac
@@ -45,6 +63,8 @@ done
 [ -z "$NEXT" ] || sld_die "--$NEXT needs a value"
 [ -f "$SPEC" ] || sld_die "OpenAPI file not found: ${SPEC:-<none>}"
 [ -n "$OUT" ] || sld_die "--out DIR is required"
+[ -z "$PROJECT" ] || [ -d "$PROJECT" ] || sld_die "project directory not found: $PROJECT"
+[ -z "$LOGO" ] || [ -f "$LOGO" ] || sld_die "logo file not found: $LOGO"
 sld_has_cmd node || sld_die "node is required"
 TMPD="$(mktemp -d)"; trap 'rm -rf "$TMPD"' EXIT
 
@@ -59,9 +79,9 @@ case "$SPEC" in
 esac
 mkdir -p "$OUT"
 
-node - "$TMPD/spec.json" "$OUT" "$BASE" "$TITLE" "$REPORT_OUT" <<'EOF'
+node - "$TMPD/spec.json" "$OUT" "$BASE" "$TITLE" "$REPORT_OUT" "$PROJECT" "$BRAND" "$LOGO" "$FONT" "$SPEC_URL" "$SCRIPT_DIR/../templates/api-docs/page.html" <<'EOF'
 const fs = require("fs"), path = require("path");
-const [specPath, out, baseOpt, titleOpt, reportOut] = process.argv.slice(2);
+const [specPath, out, baseOpt, titleOpt, reportOut, projectDir, brandOpt, logoPath, fontOpt, specUrl, pageTpl] = process.argv.slice(2);
 let spec;
 try { spec = JSON.parse(fs.readFileSync(specPath, "utf8")); } catch (e) { console.error(`ERROR: invalid JSON spec: ${e.message}`); process.exit(2); }
 if (!/^3\./.test(String(spec.openapi || ""))) { console.error(`ERROR: OpenAPI 3.x expected (found ${spec.openapi || spec.swagger || "none"}); convert Swagger 2.0 with the generator or swagger2openapi`); process.exit(2); }
@@ -209,20 +229,65 @@ for (const [tag, list] of Object.entries(endpoints.reduce((a, e) => ((a[e.tag] |
 }
 fs.writeFileSync(path.join(out, "api-structures.md"), md.join("\n") + "\n");
 
-// Interactive reference (Scalar, pinned); the spec is embedded as JSON text, "<" escaped.
-const json = JSON.stringify(spec).replace(/</g, "\\u003c");
+// Brand colour: given, or read from the project's own tokens; never invented.
+const COLOR_RE = /^(#[0-9a-f]{3,8}|(rgb|rgba|hsl|hsla|oklch|oklab|lab|lch)\([0-9.,%\s/+-]+\))$/i;
+let brand = null, brandFrom = "neutral default (no brand colour found)";
+if (brandOpt) { if (!COLOR_RE.test(brandOpt.trim())) { console.error(`ERROR: --brand-color must be a CSS colour (hex, rgb(), hsl(), oklch()…): ${brandOpt}`); process.exit(2); } brand = brandOpt.trim(); brandFrom = "--brand-color"; }
+else if (projectDir) {
+  const SKIP = new Set(["node_modules", "vendor", ".git", "dist", "build", ".next", "storage", "coverage", "public"]);
+  const files = [];
+  (function walk(dir, depth) {
+    if (depth > 5 || files.length > 600) return;
+    let entries; try { entries = fs.readdirSync(dir, { withFileTypes: true }); } catch { return; }
+    for (const e of entries) {
+      const f = path.join(dir, e.name);
+      if (e.isDirectory()) { if (!SKIP.has(e.name) && !e.name.startsWith(".")) walk(f, depth + 1); }
+      else if (/\.(css|scss|sass|less)$|^tailwind\.config\.(js|cjs|mjs|ts)$|^index\.html$|\.blade\.php$/.test(e.name)) files.push(f);
+    }
+  })(projectDir, 0);
+  const color = "(#[0-9a-fA-F]{3,8}|(?:rgb|rgba|hsl|hsla|oklch|oklab)\\([0-9.,%\\s/+-]+\\))";
+  const rules = [
+    ["CSS variable", new RegExp(`--(?:color-)?(?:primary|brand)(?:-color)?(?:-(?:500|600|default))?\\s*:\\s*${color}`, "i")],
+    ["tailwind.config primary", new RegExp(`primary\\s*:\\s*(?:\\{[^}]*?(?:DEFAULT|500|600)\\s*:\\s*)?['"]${color}['"]`)],
+    ["theme-color meta", new RegExp(`name=["']theme-color["'][^>]*content=["']${color}["']`, "i")],
+  ];
+  outer: for (const [label, re] of rules) for (const f of files) {
+    let text; try { const st = fs.statSync(f); if (st.size > 600000) continue; text = fs.readFileSync(f, "utf8"); } catch { continue; }
+    const m = text.match(re);
+    if (m && COLOR_RE.test(m[1])) { brand = m[1]; brandFrom = `${label} in ${path.relative(projectDir, f)}`; break outer; }
+  }
+}
+const accent = brand || "#3d5a80";
+const hex = /^#([0-9a-f]{3}|[0-9a-f]{6})$/i.test(accent) ? accent : null;
+const onBrand = (() => { if (!hex) return "#ffffff"; let h = hex.slice(1); if (h.length === 3) h = h.replace(/./g, "$&$&");
+  const [r, g, b] = [0, 2, 4].map((i) => parseInt(h.slice(i, i + 2), 16) / 255).map((c) => (c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4));
+  return 0.2126 * r + 0.7152 * g + 0.0722 * b > 0.4 ? "#111111" : "#ffffff"; })();
+const brandDark = `color-mix(in oklab, ${accent} 62%, white)`;
+if (fontOpt && !/^[\w\s,"'-]+$/.test(fontOpt)) { console.error("ERROR: --font must be a font-family list"); process.exit(2); }
+const font = fontOpt || `system-ui, -apple-system, "Segoe UI", Roboto, sans-serif`;
+let logo = "";
+if (logoPath) {
+  const ext = path.extname(logoPath).slice(1).toLowerCase(), mime = { svg: "image/svg+xml", png: "image/png", jpg: "image/jpeg", jpeg: "image/jpeg", webp: "image/webp" }[ext];
+  if (!mime) { console.error("ERROR: --logo must be svg, png, jpg or webp"); process.exit(2); }
+  const data = fs.readFileSync(logoPath); if (data.length > 300000) { console.error("ERROR: --logo is larger than 300 KB"); process.exit(2); }
+  logo = `<img alt="" src="data:${mime};base64,${data.toString("base64")}">`;
+}
+if (specUrl && !/^(https?:\/\/|\/)[^\s"'<>]*$/.test(specUrl)) { console.error("ERROR: --spec-url must be an http(s) URL or a path"); process.exit(2); }
+const environment = { name: `${title} (local)`, values: [{ key: "baseUrl", value: baseUrl, type: "default", enabled: true }, { key: "token", value: "", type: "secret", enabled: true }], _postman_variable_scope: "environment" };
+fs.writeFileSync(path.join(out, `${slug}.postman_environment.json`), JSON.stringify(environment, null, 2) + "\n");
+fs.writeFileSync(path.join(out, "openapi.json"), JSON.stringify(spec, null, 2) + "\n");
+
+// Page: branded bar + Scalar reference; everything embedded as JSON text ("<" escaped).
+const css = `.light-mode{--scalar-color-accent:${accent};--scalar-font:${font}}.dark-mode{--scalar-color-accent:${brandDark};--scalar-font:${font}}`;
 const esc = (x) => String(x).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
-const body = (note) => `<title>${esc(title)}</title>
-${note}<div id="app"></div>
-<script id="siska-spec" type="application/json">${json}</script>
-<script src="https://cdn.jsdelivr.net/npm/@scalar/api-reference@1.72.3/dist/browser/standalone.js"></script>
-<script>
-  // No proxy: requests go straight from the browser to the API (the API must allow its origin, CORS).
-  Scalar.createApiReference("#app", { content: JSON.parse(document.getElementById("siska-spec").textContent), servers: [{ url: ${JSON.stringify(baseUrl)} }], withDefaultFonts: false });
-</script>
-`;
-fs.writeFileSync(path.join(out, "index.html"), `<!doctype html>\n<html lang="en">\n<head>\n<meta charset="utf-8">\n<meta name="viewport" content="width=device-width, initial-scale=1">\n</head>\n<body>\n${body("")}</body>\n</html>\n`);
-fs.writeFileSync(path.join(out, "artifact.html"), body(`<p style="margin:0;padding:10px 16px;font:14px system-ui,sans-serif;background:#fbf0d9;color:#6b4a00">Shared reference: read the endpoints and their data. To send requests, open <code>index.html</code> locally or import the Postman collection.</p>\n`));
+const page = (shared) => {
+  const data = { title, version: spec.info && spec.info.version, baseUrl, slug, spec, collection, environment, css, specUrl: shared ? null : specUrl || null, shared };
+  const json = JSON.stringify(data).replace(/</g, "\\u003c").replace(/\u2028/g, "\\u2028").replace(/\u2029/g, "\\u2029");
+  return fs.readFileSync(pageTpl, "utf8").replace("__SISKA_TITLE__", () => esc(title)).replace("__SISKA_BRAND__", () => accent).replace("__SISKA_BRAND_DARK__", () => brandDark)
+    .replace("__SISKA_ON_BRAND__", () => onBrand).replace("__SISKA_FONT__", () => font).replace("__SISKA_LOGO__", () => logo).replace("__SISKA_DATA__", () => json);
+};
+fs.writeFileSync(path.join(out, "index.html"), `<!doctype html>\n<html lang="en">\n<head>\n<meta charset="utf-8">\n<meta name="viewport" content="width=device-width, initial-scale=1">\n</head>\n<body>\n${page(false)}\n</body>\n</html>\n`);
+fs.writeFileSync(path.join(out, "artifact.html"), page(true));
 
 if (reportOut) {
   fs.writeFileSync(reportOut, JSON.stringify({
@@ -244,7 +309,9 @@ if (reportOut) {
 console.log(`## API docs: ${title}`);
 console.log(`${endpoints.length} endpoints · ${Object.keys(folders).length} groups · base URL ${baseUrl}`);
 for (const e of noResponseSchema) console.log(`WARN:  no response schema: ${e}`);
-console.log(`written: ${path.join(out, "index.html")} (interactive, send requests)`);
+console.log(`colours: ${accent} – ${brandFrom}`);
+console.log(`written: ${path.join(out, "index.html")} (interactive, send requests, exports${specUrl ? `, live spec from ${specUrl}` : ""})`);
+console.log(`written: ${path.join(out, `${slug}.postman_environment.json`)} and openapi.json`);
 console.log(`written: ${path.join(out, `${slug}.postman_collection.json`)} (Postman, Insomnia, Bruno)`);
 console.log(`written: ${path.join(out, "api-structures.md")} (fields sent and returned)`);
 console.log(`written: ${path.join(out, "artifact.html")} (shared read-only page)`);
