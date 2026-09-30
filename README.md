@@ -324,6 +324,31 @@ bash scripts/install-git-hook.sh /chemin/du/projet    # hooks pre-commit + commi
 - Le hook git bloque tous les commits du dépôt, que ce soit un agent ou toi qui committe. Il ne remplace jamais un hook existant, ni husky ou lefthook : dans ce cas, il affiche la ligne à ajouter.
 - Détails par agent : `compat/README.md`.
 
+**Mettre à jour** (Codex, Copilot, OpenCode…) :
+
+```bash
+cd lead-developer && git pull
+bash scripts/install.sh --force        # ou --target <dossier> si tu l'avais utilisé
+```
+
+`--force` remplace l'installation et garde l'ancienne en `*.bak.<date>`. Avec `--link`, le skill principal suit `git pull`, mais les commandes sont générées : relance `install.sh --force --link` pour obtenir les nouvelles. Redémarre ensuite la session de l'agent.
+
+**Désactiver** : ces agents n'ont pas de bouton commun pour ça. Utilise le réglage de skills de ton agent s'il en a un, sinon désinstalle et réinstalle plus tard :
+
+```bash
+bash scripts/install.sh --uninstall                            # retire le skill et ses commandes
+bash scripts/install-git-hook.sh /chemin/du/projet --uninstall  # retire le contrôle avant commit
+```
+
+Pour couper seulement le contrôle avant commit sur un projet : `bash scripts/settings.sh /chemin/du/projet gate off`. Le scan de secrets et le blocage des co-auteurs IA restent actifs.
+
+**Ce qui change hors Claude Code :**
+- Les scripts marchent partout, avec n'importe quel agent ou à la main : scans, budgets, doc d'API, modèle de données, rapports.
+- Les **rapports** et les pages (doc d'API, explorateur du modèle de données) sont des **fichiers HTML** à ouvrir dans le navigateur (`.siska/reports/`, `docs/`), et non des artifacts partagés.
+- Le **contrôle avant commit** passe par le hook git : il bloque aussi les commits faits à la main.
+- Le **suivi des demandes** (T1, T2…) est une règle que l'agent suit. Seul Claude Code le rend obligatoire, grâce à ses hooks de session.
+- Les MCP navigateur (Playwright, Chrome DevTools) servent quand ton agent les a configurés.
+
 **Ne pas utiliser ce script pour Claude Code** : utilise le plugin. Le script refuse d'installer dans `.claude/skills` si le plugin y est déjà, pour éviter un doublon.
 
 Options : `--link` (lien symbolique), `--force` (remplace en gardant une sauvegarde), `--dry-run` (aperçu).
