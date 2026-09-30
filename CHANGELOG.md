@@ -4,6 +4,7 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), versions: [Sem
 
 ## [1.13.0] - 2026-09-30
 ### Added
+- API docs like API Platform: `api-docs.sh` builds the page from `templates/api-docs/page.html` – a bar in the project's colours (brand colour read from the front end's CSS variables, `tailwind.config` or `theme-color`, or `--brand-color`; `--logo`, `--font`; dark variant derived with `color-mix`) and exports (Postman collection, Postman environment, OpenAPI; copy on shared pages) above the Scalar reference themed with the same accent. `--spec-url` loads the live spec served by the app's generator; `*.postman_environment.json` and `openapi.json` are written next to the page. Colour, font and URL inputs are validated. On a shared page the exports use the viewer's download capability when offered, else copy the file; the page stays usable (exports) if the reference library cannot load.
 - Interactive data model explorer: `data-model.sh --html` (file to open) and `--artifact` (page to share), from `templates/data-model/explorer.html` (Cytoscape.js, pinned). Zoom, pan, rotate, fit, search a table or a column, table sheet (columns, type, null, default, keys, indexes, relations both ways, clickable), focus on neighbours (1 or 2 levels, or only them), layouts, draggable tables, deep link `#table`, colour per domain, foreign keys without index dashed, "Issues only" filter, keyboard shortcuts, light/dark, phone width. Checked on a 229-table PostgreSQL schema (layout in about 2 s).
 
 ## [1.12.0] - 2026-09-30

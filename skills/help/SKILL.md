@@ -17,7 +17,7 @@ Reply with exactly this table, nothing else:
 | `/siska-lead-developer:optimize https://app.local/orders` | Give a page link: it scans the page, gives a summary and a plan, applies it on a `perf/` branch (risky items wait for your yes), then shows before → after |
 | `/siska-lead-developer:optimize com.company.app --flow .maestro/orders.yaml` | Mobile: measures the app on a device or emulator (cold start, janky frames, memory), summary, plan, applied, before → after |
 | `/siska-lead-developer:optimize front --orders` | Only some parts (`api`, `front`, `back`, `dead`, combinable), only what matches `orders` |
-| `/siska-lead-developer:api-docs` | API docs like Postman: interactive page to read and send requests, Postman collection (Postman, Insomnia, Bruno), fields sent and returned (type, required, default, allowed values) |
+| `/siska-lead-developer:api-docs` | API docs like API Platform, in your site's colours: read and send requests, served by the app or shared, exports (Postman collection and environment, OpenAPI for Insomnia, Bruno, Hoppscotch), fields sent and returned (type, required, default, allowed values) |
 | `/siska-lead-developer:data-model` | Data model: interactive explorer (zoom, pan, rotate, search, focus a table and its neighbours) and docs with ER diagram; tables, columns, types, defaults, keys, relations; flags tables without primary key and foreign keys without index · `--only <regex>` |
 | `/siska-lead-developer:mcp <what to expose>` | Add / extend / audit an MCP server in the app |
 | `/siska-lead-developer:check-code` | Pre-commit check: tests, linters, secrets, keys, `.env`. Commit refused if anything fails (also enforced automatically on every `git commit`; secrets and AI co-author trailers are always checked) |
