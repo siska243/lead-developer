@@ -55,12 +55,17 @@ If the project has an OpenAPI file or generator, update it with every API change
 
 Validate the spec when possible: `npx @redocly/cli lint <openapi file>` (ask before downloading it).
 
-## Code documentation
-- Format of the project: PHPDoc, JSDoc/TSDoc, Python docstrings.
-- Document public APIs of modules, non-obvious behavior, business rules, side effects, thrown errors. Not what the code already says.
-- Comments explain **why**.
+## Project documentation
+The README (or the project's docs entry point) lets a new developer, without asking anyone: understand what the project does, install it, configure it (env var **names** and where to get the values, never values), run it, test it, deploy it. Any ticket that changes one of these updates the README in the same ticket.
+
+## Code documentation (mandatory for new and changed code)
+- Format of the project: PHPDoc, JSDoc/TSDoc, Python docstrings, shell header comments.
+- Every new or changed class, module, public function or method, endpoint, job, command and script gets a doc comment: purpose, parameters, return value, errors thrown, side effects (DB writes, events, external calls).
+- Non-obvious code gets a comment that explains **why** (business rule, workaround of an external bug, performance or security choice). Never a comment that repeats the code.
+- Types (TypeScript, PHP types, Python type hints) are part of the documentation: use them where the project does.
 
 ## Check before delivery
+- Every new or changed class, public function, endpoint and script has its doc comment; README still true.
 - Every endpoint, field and status in the page exists in the code.
 - Examples are runnable (same field names, same status codes).
 - Links resolve; OpenAPI lint passes when available.

@@ -17,4 +17,6 @@ Follow `${CLAUDE_SKILL_DIR}/../../references/dependencies.md`. Change nothing be
    - `At risk: Package | Last release | Status (deprecated/abandoned/archived/stale) | Replacement`
    - `Unused: Package | Evidence it is unused | Safe to remove (yes/check)`
    - `SKIP` / `no audit could run` = **not verified**: say so and what to install.
-5. Ask which packages to remove or update. Then do it one group at a time with the project's package manager, and run tests + build after each group.
+   Deliver it as a visual report with the link, following `${CLAUDE_SKILL_DIR}/../../references/reports.md`.
+5. With `--outdated`, add `Outdated: Package | Installed | Latest | Type (patch/minor/major) | Proposed batch` and the runtime/framework end-of-life status (section "Staying current").
+6. Ask which packages to remove or update. Then do it one group at a time with the project's package manager, and run tests + build after each group.

@@ -80,3 +80,28 @@ sld_setting() {
   done
   echo on
 }
+
+# sld_timeout SECONDS CMD... -> run CMD, exit 124 when it takes longer (GNU/BSD timeout if present).
+sld_timeout() {
+  local secs="$1"; shift
+  if sld_has_cmd timeout; then timeout "$secs" "$@"
+  elif sld_has_cmd gtimeout; then gtimeout "$secs" "$@"
+  else "$@"
+  fi
+}
+
+# sld_spin MESSAGE CMD... -> run CMD; animate a spinner on stderr only when it is a terminal
+# (agents and CI get plain output). Returns CMD's exit code.
+sld_spin() {
+  local msg="$1"; shift
+  if [ ! -t 2 ]; then "$@"; return; fi
+  local frames='|/-\' i=0 pid status
+  case "${LC_ALL:-${LC_CTYPE:-${LANG:-}}}" in *UTF-8*|*utf8*) frames='⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏' ;; esac
+  "$@" & pid=$!
+  while kill -0 "$pid" 2>/dev/null; do
+    printf '\r%s %s' "${frames:i++%${#frames}:1}" "$msg" >&2; sleep 0.1
+  done
+  wait "$pid"; status=$?
+  printf '\r\033[K' >&2
+  return $status
+}

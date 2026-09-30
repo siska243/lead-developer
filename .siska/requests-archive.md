@@ -69,3 +69,80 @@
   - 2026-09-28: éviter ce genre d'oubli (suivi non tenu dans un fichier); l'ajouter dans le plugin pour ne rien rater, plus d'excuse
 - Result: `scripts/ledger-hook.sh` + hooks `UserPromptSubmit`/`Stop` du plugin; 8 tests; testé en réel sur 2 messages (T1 puis T2 créés au bon format sans le demander); commit `ac3290b`
 - Question: –
+## T9 · Utilisable avec Claude, Codex, Copilot…
+- Status: ✅ done · Priority: P2 · Created: 2026-09-28 · Updated: 2026-09-28
+- Instructions:
+  - 2026-09-28: il faut que ce soit utilisable pour Claude, Codex, Copilot, etc.
+- Result: commandes portables `siska-<cmd>` via `install.sh`, hook git `install-git-hook.sh`, `compat/README.md`; reconnues pour Codex, Copilot, OpenCode par le CLI skills; commit `038de15`
+- Question: –
+- Verified: Codex 0.158.0, `$siska-check-code` → « Commit refused » avec la bonne raison (après mise à jour de Codex et retrait de `model = "gpt-5.4"` dans ~/.codex/config.toml, sauvegarde config.toml.bak)
+
+## T12 · Réduire les tokens du suivi des demandes
+- Status: ✅ done · Priority: P1 · Created: 2026-09-28 · Updated: 2026-09-28
+- Instructions:
+  - 2026-09-28: utiliser le moins de tokens possible avec une qualité de code élevée, vraiment
+- Result: archivage auto des tickets clos par le hook, ajout sans relecture, lecture ciblée, hook raccourci; fichier actif ~1265 → ~138 tokens; tests OK
+- Question: –
+
+## T13 · Activer / désactiver le hook pre-commit depuis le plugin
+- Status: ✅ done · Priority: P1 · Created: 2026-09-28 · Updated: 2026-09-28
+- Instructions:
+  - 2026-09-28: comment désactiver le hook pre-commit ; impossible depuis mon plugin, on doit pouvoir l'activer et le désactiver
+- Result: `settings.sh` + commande `settings` (gate/ledger, projet ou `--global`), hooks respectent le réglage ; 10 tests
+- Question: –
+## T14 · Pre-commit hook: no hardcoded secret, password or key
+- Status: ✅ done · Priority: P1 · Created: 2026-09-30 · Updated: 2026-09-30
+- Result: scripts/secret-scan.sh, always run by the commit gate (even gate off / skip); 29 new tests; branch feature/secret-scan-optimize, not committed yet
+- Instructions: 2026-09-30 hook that checks, before every commit, that no data leak, password or key is hardcoded. Add it to the plugin.
+
+## T15 · No AI co-author trailer in the project
+- Status: ✅ done · Priority: P1 · Created: 2026-09-30 · Updated: 2026-09-30
+- Result: no AI trailer found in files or git history; gate blocks AI co-author / "Generated with" in commits and gh pr; git commit-msg hook; rule in git.md
+- Instructions: 2026-09-30 remove the Claude co-author line, never see it again in the project (commits, PRs).
+
+## T16 · Document the project and the code well
+- Status: ✅ done · Priority: P2 · Created: 2026-09-30 · Updated: 2026-09-30
+- Result: documentation.md: mandatory doc comments for new/changed code + README checklist; SKILL.md rule; README section
+- Instructions: 2026-09-30 always document the project and the code well.
+
+## T17 · Up-to-date technologies, regular dependency updates
+- Status: ✅ done · Priority: P2 · Created: 2026-09-30 · Updated: 2026-09-30
+- Result: dependencies.md "Staying current" (latest stable, EOL check, batched regular updates); audit-package --outdated update plan
+- Instructions: 2026-09-30 always use current technologies; update dependencies regularly.
+
+## T18 · Optimize command: API sends only what the front uses
+- Status: ✅ done · Priority: P1 · Created: 2026-09-30 · Updated: 2026-09-30
+- Result: new command /siska-lead-developer:optimize + performance.md payload section; help, README, CHANGELOG 1.10.0
+- Instructions: 2026-09-30 skill to optimize code: check each API route against the front, send only the fields the front uses; pages are getting heavy and slow to load. Add everything to the plugin.
+## T19 · Code optimization beyond API payloads (follow-up of T18)
+- Status: ✅ done · Priority: P1 · Created: 2026-09-30 · Updated: 2026-09-30
+- Instructions: 2026-09-30 "et pour l'optimisation du code ?"
+  - 2026-09-30: add heavy pages (front), front requests that should not happen, backend code, dead / duplicated code
+- Result: optimize command with parts api/front/back/dead; performance.md sections: front requests, heavy pages, backend code, dead/duplicated code; help, README, CHANGELOG
+## T21 · Use a browser MCP (Playwright) for the page scan
+- Status: ✅ done · Priority: P2 · Created: 2026-09-30 · Updated: 2026-09-30
+- Instructions: 2026-09-30 isn't it better / more standard to use the Playwright MCP to test Lighthouse?
+- Result: Lighthouse kept for the measure (standard, same engine as DevTools/PageSpeed); browser MCP (Playwright / Chrome DevTools) used when installed for actions, console, traces; --login for logged-in pages. No browser MCP configured here
+
+## T22 · Clean visual reports (artifact) for every plugin result, link shown, terminal animation
+- Status: ✅ done · Priority: P2 · Created: 2026-09-30 · Updated: 2026-09-30
+- Instructions: 2026-09-30 results must be an artifact, well presented, clean and clear, for every response the plugin returns; show the link clearly; some animation in the terminal if possible.
+- Result: report.sh + templates/report (JSON → page, light/dark, mobile, text-only rendering), references/reports.md wired into every command; terminal spinner + colours on TTY; demo artifact https://claude.ai/artifact/MApwmLQPZZYEmUY2kyVJ79
+## T23 · Status line from the shell PS1
+- Status: ✅ done · Priority: P3 · Created: 2026-09-30 · Updated: 2026-09-30
+- Instructions: 2026-09-30 /statusline: configure the Claude Code status line from the shell PS1.
+- Result: already matches ~/.bashrc PS1 (green user@host, blue path); ~/.claude/settings.json left unchanged
+## T24 · Optimize must work for mobile apps too (standard tools)
+- Status: ✅ done · Priority: P1 · Created: 2026-09-30 · Updated: 2026-09-30
+- Instructions: 2026-09-30 don't forget it can also be used for mobile apps; it must be standard.
+- Result: optimize mobile mode + scripts/mobile-scan.sh (adb/dumpsys/Maestro), verified on Android 16 emulator; performance.md mobile tools; demo report https://claude.ai/artifact/NzhnZTGXuB9r6CS6mkTtPz
+## T20 · Optimize from a page link: scan, summary, then optimize
+- Status: ✅ done · Priority: P1 · Created: 2026-09-30 · Updated: 2026-09-30
+- Instructions: 2026-09-30 give a link → it scans automatically, gives me a summary, then optimizes.
+  - 2026-09-30: step 4 applies the plan directly (no approval question).
+  - 2026-09-30: test page given: http://localhost:5173/order-v2?per_page=25&page=1&sort_by=created_at&sort_order=desc
+  - 2026-09-30: pages behind auth need the token or the login credentials.
+  - 2026-09-30: asked whether this is only a test before publishing the plugin, or a real optimization of Rubix.
+- Result: cookie-session apps fixed (login + measure in the same Chrome, --login-url; manual window kept open, scans connect with --port), verified on a fake cookie app; Rubix: previous manual session lost when the window closed (API /me 401) → needs a new login
+  - 2026-09-30: do not apply anything to Rubix; it was the plugin test. Update the plugin.
+

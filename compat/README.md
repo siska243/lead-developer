@@ -11,7 +11,7 @@ Agent-specific details live here.
 | OpenCode and other agents reading `~/.agents/skills` | `bash scripts/install.sh` | `~/.agents/skills` | the agent's way to call a skill by name | `bash scripts/install-git-hook.sh <project>` |
 | Any other Skills-compatible agent | `bash scripts/install.sh --target <its skills dir>` | its own | its own | `bash scripts/install-git-hook.sh <project>` |
 
-`install.sh` generates the commands (`siska-audit-route`, `siska-check-code`, …) from `skills/` with absolute paths and without agent-specific placeholders, so they run in any agent. The git hook blocks every commit in that repository (agent or human) when the checks fail.
+`install.sh` generates the commands (`siska-audit-route`, `siska-check-code`, …) from `skills/` with absolute paths and without agent-specific placeholders, so they run in any agent. The git hooks block every commit in that repository (agent or human) when the checks or the secret scan fail (`pre-commit`), or when the message carries an AI co-author trailer (`commit-msg`).
 
 Request ledger enforcement (reminder on each message, response blocked until `.siska/requests.md` is updated) needs prompt/stop hooks: Claude Code plugin only. Other agents follow the rule in `references/requests.md` without enforcement.
 

@@ -20,3 +20,4 @@ Read-only security audit of routes. Apply the rules of `${CLAUDE_SKILL_DIR}/../.
    - one table: `Method | Route | Auth | Authz | Validation | Rate limit | Risk (OK/Low/Medium/High/Critical)`
    - then only the findings: `file:line` · problem · concrete exploit scenario · minimal fix
    - state what could not be verified (e.g. runtime config, reverse proxy)
+   Deliver it as a visual report with the link, following `${CLAUDE_SKILL_DIR}/../../references/reports.md`.

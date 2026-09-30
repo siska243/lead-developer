@@ -16,6 +16,8 @@ they use `${CLAUDE_SKILL_DIR}` to reach the core files.
 ## Native capabilities
 | Skill need | Claude Code |
 |------------|-------------|
+| Visual report (`references/reports.md`) | Build it with `scripts/report.sh` (no `--standalone`) into the session scratchpad, then publish that file with the `Artifact` tool (follow the tool's own design rules; `icon: "report"`). Private by default; print the artifact URL on the last line. Re-runs republish the same file path so the link stays the same |
+| Browser for pages behind a login or user actions | Playwright MCP / Chrome DevTools MCP when configured (`claude mcp list`), or the `browse` skill |
 | Plan mode | `EnterPlanMode` / `ExitPlanMode` for any non-trivial task |
 | Sub-agents | `Agent` tool: `Explore` (read-only search), `Plan` (architecture), `general-purpose` (implementation); independent agents in one message run in parallel; `model: "haiku"` or `"sonnet"` for simple search/summary tasks. Multi-agent `Workflow` only when the user explicitly asks for it |
 | Isolation | `EnterWorktree` / `isolation: "worktree"` for risky or parallel work |

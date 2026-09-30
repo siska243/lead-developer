@@ -1,0 +1,34 @@
+# siska-lead-developer checks for a project on GitLab CI: include these jobs in .gitlab-ci.yml.
+# - siska-secrets: secret scan of the merge request commits and of the whole history;
+# - siska-checks: tests and lint with check-project.sh after the project's own setup.
+# SISKA_REF pins the plugin version (a release tag or a commit SHA, never a branch).
+variables:
+  SISKA_REF: v1.10.0
+  GIT_DEPTH: 0 # the history scan and the merge request range need every commit
+
+.siska-get: &siska-get
+  - git clone --quiet --depth 1 --branch "$SISKA_REF" https://github.com/siska243/lead-developer /tmp/siska
+
+siska-secrets:
+  image: alpine:3
+  before_script:
+    - apk add --no-cache git bash gawk grep coreutils >/dev/null
+    - *siska-get
+  script:
+    - |
+      if [ -n "${CI_MERGE_REQUEST_DIFF_BASE_SHA:-}" ]; then
+        bash /tmp/siska/scripts/secret-scan.sh . --range "$CI_MERGE_REQUEST_DIFF_BASE_SHA..$CI_COMMIT_SHA"
+      fi
+    - bash /tmp/siska/scripts/secret-scan.sh . --history
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+
+siska-checks:
+  # Use the project's own image and setup (runtime, dependencies, services).
+  script:
+    - *siska-get
+    - bash /tmp/siska/scripts/check-project.sh . --run-tests --run-lint
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
