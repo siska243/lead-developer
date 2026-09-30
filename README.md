@@ -17,7 +17,7 @@ Fait travailler ton agent IA comme un **Lead Developer senior** : zéro régress
 | `/siska-lead-developer:optimize com.societe.app --flow .maestro/orders.yaml` | Mobile : mesure l'app sur un téléphone ou un émulateur (démarrage, images saccadées, mémoire), résumé, plan appliqué, avant → après |
 | `/siska-lead-developer:optimize front --orders` | Seulement certaines parties (`api`, `front`, `back`, `dead`, cumulables), seulement ce qui contient `orders` |
 | `/siska-lead-developer:api-docs` | Doc d'API façon Postman : page interactive pour lire et envoyer des requêtes, collection Postman (Postman, Insomnia, Bruno), champs envoyés et reçus avec type, obligatoire, défaut, valeurs possibles |
-| `/siska-lead-developer:data-model` | Structure de données : tables, colonnes, types, défauts, clés, relations, diagramme ER ; signale les tables sans clé primaire et les clés étrangères sans index |
+| `/siska-lead-developer:data-model` | Structure de données : explorateur interactif (zoom, déplacement, rotation, recherche, focus sur une table et ses voisines) et doc avec diagramme ER ; signale les tables sans clé primaire et les clés étrangères sans index |
 | `/siska-lead-developer:mcp <quoi exposer>` | Ajouter / auditer un serveur MCP |
 | `/siska-lead-developer:check-code` | Contrôle avant commit : tests, linters, secrets et clés en dur, `.env`. Commit refusé si quelque chose échoue |
 | `/siska-lead-developer:check-code --front` | Idem, uniquement le front (aussi `--back`, `--mobile`, cumulables) |
@@ -184,7 +184,16 @@ bash scripts/api-docs.sh openapi.json --out docs/api --base-url http://localhost
 
 ### Structure de données (`data-model`)
 
-Lit le **vrai schéma** de la base, en lecture seule, sans jamais lire les lignes : tables, colonnes, types, valeurs par défaut, clés, index et relations. Il écrit `docs/data-model.md`, avec un diagramme ER Mermaid et le dictionnaire des tables, et un rapport visuel. Il signale les tables sans clé primaire et les **clés étrangères sans index**. PostgreSQL ne les crée pas automatiquement, et leur absence ralentit les jointures et les suppressions.
+Lit le **vrai schéma** de la base, en lecture seule, sans jamais lire les lignes : tables, colonnes, types, valeurs par défaut, clés, index et relations.
+
+**L'explorateur interactif** (`docs/data-model.html`, aussi partageable en page) est fait pour les gros schémas : des centaines de tables.
+- Zoom à la molette ou au pincement, déplacement à la souris, rotation (⟲ ⟳), bouton pour tout cadrer.
+- Recherche d'une table ou d'une colonne, puis clic : les colonnes (type, null, défaut, clé), les index et les relations dans les deux sens, cliquables.
+- **Focus** sur une table et ses voisines, à 1 ou 2 niveaux, ou seulement elles. Plusieurs mises en page, tables déplaçables, lien direct `…/data-model.html#orders`.
+- Couleur par domaine ; les clés étrangères sans index sont en pointillés orange, et le filtre « Issues only » isole les tables à corriger.
+- Raccourcis : `/` recherche, `+` `-` zoom, `0` cadrer, `[` `]` rotation, `Esc` effacer.
+
+Il écrit aussi `docs/data-model.md` (diagramme ER Mermaid et dictionnaire complet) et un rapport visuel. Il signale les tables sans clé primaire et les **clés étrangères sans index**. PostgreSQL ne les crée pas automatiquement, et leur absence ralentit les jointures et les suppressions.
 
 - Laravel 11+ : l'introspection du framework, sur la connexion configurée.
 - SQLite : `--sqlite fichier.db`.
@@ -194,7 +203,7 @@ Lit le **vrai schéma** de la base, en lecture seule, sans jamais lire les ligne
 Si la configuration pointe vers une base de production, Siska demande avant de s'y connecter.
 
 ```bash
-bash scripts/data-model.sh . --markdown docs/data-model.md
+bash scripts/data-model.sh . --html docs/data-model.html --markdown docs/data-model.md
 ```
 
 ## Technologies et dépendances à jour
@@ -292,7 +301,7 @@ bash scripts/page-scan.sh --login <url>                # se connecter une fois p
 bash scripts/mobile-scan.sh <package> [--flow f.yaml]  # performance d'une app Android (adb, Maestro)
 bash scripts/perf-budget.sh . run [--update-baseline]  # budgets de performance des pages et apps
 bash scripts/api-docs.sh openapi.json --out docs/api   # doc interactive, collection Postman, structures de l'API
-bash scripts/data-model.sh . --markdown docs/data-model.md   # schéma de la base, diagramme ER
+bash scripts/data-model.sh . --html docs/data-model.html   # explorateur interactif du schéma (+ --markdown)
 bash scripts/report.sh data.json --out r.html --standalone   # rapport visuel
 ```
 

@@ -377,6 +377,14 @@ CREATE TABLE logs(message TEXT);""")' "$DMF"
   check "ER relation drawn" grep -q 'users ||--o{ orders : "user_id"' "$TMP/dm.md"
   check "default value documented" grep -q "| total | INTEGER | no | 0 |" "$TMP/dm.md"
   check "diagram in the report" grep -q '"type": "diagram"' "$TMP/dm-report.json"
+  bash "$REPO/scripts/data-model.sh" --from-json "$TMP/dm.json" --html "$TMP/dm-explorer.html" --artifact "$TMP/dm-art.html" >/dev/null 2>&1
+  check "explorer is a full document" grep -q '^<!doctype html>' "$TMP/dm-explorer.html"
+  check "explorer pins its graph library" grep -q 'cytoscape/3.34.3/cytoscape.min.js' "$TMP/dm-explorer.html"
+  check "explorer embeds the schema" grep -q '"name":"orders"' "$TMP/dm-explorer.html"
+  check "shared explorer has no document skeleton" not_contains "$(head -c 100 "$TMP/dm-art.html")" "<!doctype"
+  printf '{"tables":[{"name":"x</script><script>alert(1)</script>","columns":[],"indexes":[],"foreign_keys":[]}]}' >"$TMP/dm-evil.json"
+  bash "$REPO/scripts/data-model.sh" --from-json "$TMP/dm-evil.json" --html "$TMP/dm-evil.html" >/dev/null 2>&1
+  check "explorer escapes injected markup" not_contains "$(cat "$TMP/dm-evil.html")" "<script>alert(1)"
   out="$(bash "$REPO/scripts/data-model.sh" --from-json "$TMP/dm.json" --only '^orders$' 2>&1)"
   assert_contains "normalized JSON re-read with a filter" "$out" "1 tables"
   bash "$REPO/scripts/data-model.sh" "$TMP" >/dev/null 2>&1 && s=0 || s=$?

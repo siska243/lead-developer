@@ -1,0 +1,348 @@
+<title>__SISKA_TITLE__</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: schema explorer – table list on the left, zoomable graph in the middle, table sheet on the right. */
+:root {
+  --bg: #f4f6f8; --surface: #ffffff; --fg: #17202b; --muted: #5b6776; --line: #dde2e8; --hover: #eef2f6;
+  --accent: #1f5f8b; --accent-soft: #dcebf6; --warn: #9a6300; --warn-bg: #fbf0d9; --fail: #b3261e; --fail-bg: #fbe4e2;
+  --edge: #9aa6b4; --canvas: #f9fafb;
+  --font-body: "Instrument Sans", "Segoe UI", system-ui, sans-serif;
+  --font-data: "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+  --radius: 8px;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #0f141a; --surface: #161d25; --fg: #e6ebf1; --muted: #93a1b1; --line: #26313d; --hover: #1d2631;
+  --accent: #6fb3e0; --accent-soft: #1b3345; --warn: #e6b04f; --warn-bg: #33270f; --fail: #f2877f; --fail-bg: #3a1916;
+  --edge: #52606f; --canvas: #121820; color-scheme: dark } }
+:root[data-theme="dark"] {
+  --bg: #0f141a; --surface: #161d25; --fg: #e6ebf1; --muted: #93a1b1; --line: #26313d; --hover: #1d2631;
+  --accent: #6fb3e0; --accent-soft: #1b3345; --warn: #e6b04f; --warn-bg: #33270f; --fail: #f2877f; --fail-bg: #3a1916;
+  --edge: #52606f; --canvas: #121820; color-scheme: dark }
+* { box-sizing: border-box }
+[hidden] { display: none !important }
+html, body { height: 100% }
+body { margin: 0; background: var(--bg); color: var(--fg); font: 14px/1.5 var(--font-body); display: flex; flex-direction: column; overflow: hidden }
+button, input, select { font: inherit; color: inherit }
+button:focus-visible, input:focus-visible, select:focus-visible, [tabindex]:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px }
+.mono { font-family: var(--font-data); font-variant-numeric: tabular-nums }
+header { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; padding: 10px 16px; background: var(--surface); border-bottom: 1px solid var(--line) }
+header h1 { font-size: 16px; font-weight: 700; margin: 0 }
+.stats { display: flex; flex-wrap: wrap; gap: 4px 14px; color: var(--muted); font-size: 12.5px }
+.stats b { color: var(--fg); font-weight: 600 }
+.stats .issue b { color: var(--warn) }
+main { flex: 1; display: grid; grid-template-columns: 260px minmax(0, 1fr) 340px; min-height: 0 }
+aside { background: var(--surface); border-right: 1px solid var(--line); display: flex; flex-direction: column; min-height: 0 }
+#sheet { border-right: 0; border-left: 1px solid var(--line) }
+.search { padding: 10px; border-bottom: 1px solid var(--line); display: grid; gap: 8px }
+.search input { width: 100%; padding: 7px 10px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg) }
+.chips { display: flex; gap: 6px; flex-wrap: wrap }
+.chip { border: 1px solid var(--line); background: var(--bg); border-radius: 999px; padding: 3px 10px; font-size: 12px; cursor: pointer }
+.chip[aria-pressed="true"] { background: var(--accent-soft); border-color: var(--accent); color: var(--accent) }
+#list { list-style: none; margin: 0; padding: 4px 0; overflow: auto; flex: 1 }
+#list li { display: flex; align-items: center; gap: 8px; padding: 5px 12px; cursor: pointer; font-size: 13px }
+#list li:hover, #list li[aria-selected="true"] { background: var(--hover) }
+#list li[aria-selected="true"] { box-shadow: inset 3px 0 0 var(--accent) }
+#list .sw { width: 9px; height: 9px; border-radius: 2px; flex: none }
+#list .name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap }
+#list .n { color: var(--muted); font-size: 11.5px }
+#list .flag { color: var(--warn); font-size: 11px }
+.stage { position: relative; min-width: 0; background: var(--canvas) }
+#cy { position: absolute; inset: 0 }
+.tools { position: absolute; top: 10px; left: 10px; display: flex; flex-wrap: wrap; gap: 6px; z-index: 2; max-width: calc(100% - 20px) }
+.group { display: flex; background: var(--surface); border: 1px solid var(--line); border-radius: 6px; overflow: hidden }
+.group button, .group select { border: 0; background: transparent; padding: 5px 9px; cursor: pointer; min-width: 32px }
+.group button + button, .group select { border-left: 1px solid var(--line) }
+.group button:hover { background: var(--hover) }
+.group button[aria-pressed="true"] { background: var(--accent-soft); color: var(--accent) }
+.hint { position: absolute; bottom: 10px; left: 10px; right: 10px; color: var(--muted); font-size: 12px; pointer-events: none; z-index: 2 }
+.busy { position: absolute; inset: 0; display: grid; place-items: center; color: var(--muted); z-index: 3; background: var(--canvas) }
+.sheet-body { overflow: auto; padding: 14px 16px; display: grid; grid-template-columns: minmax(0, 1fr); gap: 14px; align-content: start }
+.sheet-body > * { min-width: 0 }
+.badge { overflow-wrap: anywhere }
+.sheet-body h2 { font-size: 17px; margin: 0; overflow-wrap: anywhere; flex: 1; min-width: 0 }
+.sheet-top { display: flex; align-items: flex-start; gap: 8px }
+.close { border: 1px solid var(--line); background: var(--bg); border-radius: 6px; width: 28px; height: 28px; cursor: pointer; flex: none }
+.sheet-body h3 { font-size: 11.5px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); margin: 0 0 6px }
+.empty { color: var(--muted) }
+.badges { display: flex; flex-wrap: wrap; gap: 6px }
+.badge { font-size: 12px; padding: 2px 8px; border-radius: 999px; background: var(--hover) }
+.badge.warn { background: var(--warn-bg); color: var(--warn) }
+.badge.fail { background: var(--fail-bg); color: var(--fail) }
+.cols { overflow-x: auto; border: 1px solid var(--line); border-radius: 6px }
+table { border-collapse: collapse; width: 100%; font-size: 12.5px }
+th, td { text-align: left; padding: 5px 8px; border-bottom: 1px solid var(--line); white-space: nowrap }
+th { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; background: var(--bg) }
+tr:last-child td { border-bottom: 0 }
+.key { color: var(--accent); font-weight: 600 }
+.links { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px }
+.links button { border: 0; background: none; padding: 2px 0; cursor: pointer; color: var(--accent); text-align: left; overflow-wrap: anywhere }
+.links .warn { color: var(--warn); font-size: 11.5px; margin-left: 4px }
+@media (max-width: 1100px) { main { grid-template-columns: 220px minmax(0, 1fr) } #sheet { position: absolute; right: 0; top: 0; bottom: 0; width: min(360px, 100%); z-index: 4; box-shadow: -8px 0 24px rgba(0,0,0,.12) } #sheet[hidden] { display: none } .wrap-main { position: relative } }
+@media (max-width: 700px) { main { grid-template-columns: 1fr } #side { display: none } #side.open { display: flex; position: absolute; left: 0; top: 0; bottom: 0; width: min(300px, 100%); z-index: 4 } }
+@media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto } }
+</style>
+
+<header>
+  <h1 id="title"></h1>
+  <div class="stats" id="stats" aria-live="polite"></div>
+</header>
+<main class="wrap-main" style="position:relative">
+  <aside id="side" aria-label="Tables">
+    <div class="search">
+      <input id="q" type="search" placeholder="Search a table or column  ( / )" aria-label="Search a table or a column">
+      <div class="chips" role="group" aria-label="Filter">
+        <button class="chip" id="f-all" aria-pressed="true">All</button>
+        <button class="chip" id="f-issues" aria-pressed="false">Issues only</button>
+      </div>
+    </div>
+    <ul id="list" role="listbox" aria-label="Tables"></ul>
+  </aside>
+  <section class="stage" aria-label="Diagram">
+    <div class="tools">
+      <div class="group"><button id="t-side" title="Tables list" aria-label="Show the tables list">☰</button></div>
+      <div class="group" role="group" aria-label="Zoom">
+        <button id="z-in" title="Zoom in (+)" aria-label="Zoom in">+</button>
+        <button id="z-out" title="Zoom out (−)" aria-label="Zoom out">−</button>
+        <button id="z-fit" title="Fit all (0)" aria-label="Fit the diagram">Fit</button>
+      </div>
+      <div class="group" role="group" aria-label="Rotate">
+        <button id="r-left" title="Rotate left ( [ )" aria-label="Rotate left">⟲</button>
+        <button id="r-right" title="Rotate right ( ] )" aria-label="Rotate right">⟳</button>
+      </div>
+      <div class="group" role="group" aria-label="Focus">
+        <button id="d1" aria-pressed="true" title="Neighbours of the selected table">1 level</button>
+        <button id="d2" aria-pressed="false" title="Neighbours of neighbours">2 levels</button>
+        <button id="only" aria-pressed="false" title="Show only the selected table and its neighbours">Only these</button>
+      </div>
+      <div class="group">
+        <select id="layout" aria-label="Layout">
+          <option value="cose">Organic</option>
+          <option value="concentric">By links</option>
+          <option value="circle">Circle</option>
+          <option value="grid">Grid</option>
+        </select>
+      </div>
+    </div>
+    <div id="cy"></div>
+    <div class="busy" id="busy">Laying out the tables…</div>
+    <div class="hint">Scroll or pinch to zoom · drag the background to move · drag a table to place it · click a table for its columns · Esc to clear</div>
+  </section>
+  <aside id="sheet" aria-label="Table details"><div class="sheet-body" id="sheet-body"><p class="empty">Click a table, or search one, to see its columns, indexes and relations.</p></div></aside>
+</main>
+
+<script type="application/json" id="schema-data">__SISKA_DATA__</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.34.3/cytoscape.min.js"></script>
+<script>
+// Schema explorer. Data: the normalized schema of scripts/data-model.sh, rendered as text only.
+(function () {
+  var schema = JSON.parse(document.getElementById("schema-data").textContent);
+  var tables = schema.tables || [];
+  var byName = {}; tables.forEach(function (t) { byName[t.name] = t; });
+  var $ = function (id) { return document.getElementById(id); };
+  var narrow = function () { return innerWidth <= 1100; };
+  function el(tag, cls, text) { var n = document.createElement(tag); if (cls) n.className = cls; if (text != null) n.textContent = String(text); return n; }
+  var pkOf = function (t) { return ((t.indexes || []).find(function (i) { return i.primary; }) || {}).columns || []; };
+  var domain = function (name) { return name.split(/[_.]/)[0]; };
+  function unindexed(t, fk) { return !(t.indexes || []).some(function (i) { return fk.columns.every(function (c, n) { return i.columns[n] === c; }); }); }
+
+  // Issues per table.
+  var issues = {};
+  tables.forEach(function (t) {
+    var list = [];
+    if (!pkOf(t).length) list.push("No primary key");
+    (t.foreign_keys || []).forEach(function (fk) { if (unindexed(t, fk)) list.push("FK " + fk.columns.join(",") + " without index"); });
+    issues[t.name] = list;
+  });
+  var fkCount = 0, fkNoIdx = 0;
+  tables.forEach(function (t) { (t.foreign_keys || []).forEach(function (fk) { fkCount++; if (unindexed(t, fk)) fkNoIdx++; }); });
+
+  document.title = (schema.database ? schema.database + " · " : "") + "Data model";
+  $("title").textContent = (schema.database || "Database") + " · data model";
+  var stats = $("stats");
+  [["tables", tables.length], ["foreign keys", fkCount], ["FK without index", fkNoIdx, fkNoIdx ? "issue" : ""], ["without PK", tables.filter(function (t) { return !pkOf(t).length; }).length, "issue"]]
+    .forEach(function (s) { var sp = el("span", s[2] || ""); sp.appendChild(el("b", null, s[1])); sp.appendChild(document.createTextNode(" " + s[0])); stats.appendChild(sp); });
+  if (schema.generated_at) stats.appendChild(el("span", null, "read " + schema.generated_at.slice(0, 10) + (schema.driver ? " · " + schema.driver : "")));
+
+  // Theme-aware colours for the canvas (Cytoscape needs concrete values).
+  var css = function (v) { return getComputedStyle(document.documentElement).getPropertyValue(v).trim(); };
+  function dark() { var t = document.documentElement.dataset.theme; return t === "dark" || (t !== "light" && matchMedia("(prefers-color-scheme: dark)").matches); }
+  function hue(s) { var h = 0; for (var i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) % 360; return h; }
+  function domainColor(d) { return "hsl(" + hue(d) + ", " + (dark() ? "38%, 58%" : "46%, 48%") + ")"; }
+
+  var elements = [];
+  tables.forEach(function (t) {
+    // Explicit size from the name (monospace, 11px ≈ 6.7px per character): "label" sizing is unreliable.
+    elements.push({ data: { id: t.name, label: t.name, domain: domain(t.name), cols: t.columns.length, issue: issues[t.name].length ? 1 : 0, w: Math.max(48, Math.round(t.name.length * 6.7) + 18) } });
+  });
+  tables.forEach(function (t) {
+    (t.foreign_keys || []).forEach(function (fk, n) {
+      if (!byName[fk.foreign_table]) return;
+      elements.push({ data: { id: "fk:" + t.name + ":" + n, source: t.name, target: fk.foreign_table, label: fk.columns.join(", "), warn: unindexed(t, fk) ? 1 : 0 } });
+    });
+  });
+
+  function style() {
+    return [
+      { selector: "node", style: { "shape": "round-rectangle", "width": "data(w)", "height": 26, "label": "data(label)",
+        "font-family": "JetBrains Mono, monospace", "font-size": 11, "text-valign": "center", "color": css("--fg"), "background-color": css("--surface"),
+        "border-width": 1.5, "border-color": function (n) { return domainColor(n.data("domain")); }, "min-zoomed-font-size": 7 } },
+      { selector: "node[issue = 1]", style: { "border-style": "double", "border-width": 3 } },
+      { selector: "edge", style: { "width": 2, "line-color": css("--edge"), "target-arrow-color": css("--edge"), "target-arrow-shape": "triangle", "arrow-scale": 0.7, "curve-style": "bezier", "opacity": 0.7 } },
+      { selector: "edge[warn = 1]", style: { "line-style": "dashed", "line-color": css("--warn"), "target-arrow-color": css("--warn") } },
+      { selector: ".faded", style: { "opacity": 0.12 } },
+      { selector: ".gone", style: { "display": "none" } },
+      { selector: "node.focus", style: { "background-color": css("--accent-soft"), "border-color": css("--accent"), "border-width": 3, "font-weight": 700, "z-index": 10 } },
+      { selector: "edge.lit", style: { "opacity": 1, "width": 3, "label": "data(label)", "font-size": 9, "color": css("--muted"), "text-background-color": css("--canvas"), "text-background-opacity": 1, "text-rotation": "autorotate" } },
+    ];
+  }
+
+  var cy = cytoscape({ container: $("cy"), elements: elements, style: style(), wheelSensitivity: 0.25, minZoom: 0.03, maxZoom: 4, layout: { name: "preset" } });
+  function runLayout(name) {
+    $("busy").hidden = false;
+    setTimeout(function () {
+      var visible = cy.elements().not(".gone");
+      var opts = { name: name, animate: false, fit: true, padding: 40 };
+      if (name === "cose") Object.assign(opts, { nodeDimensionsIncludeLabels: true, nodeOverlap: 20, nodeRepulsion: function () { return 400000; },
+        idealEdgeLength: function () { return 90; }, edgeElasticity: function () { return 100; }, gravity: 0.3, componentSpacing: 80, numIter: tables.length > 150 ? 450 : 1000, randomize: true });
+      if (name === "concentric") Object.assign(opts, { concentric: function (n) { return n.degree(); }, levelWidth: function () { return 3; }, minNodeSpacing: 12 });
+      if (name === "grid") opts.avoidOverlap = true;
+      visible.layout(opts).run();
+      $("busy").hidden = true;
+    }, 30);
+  }
+
+  // Selection and focus.
+  var depth = 1, onlyMode = false, current = null;
+  function neighbourhood(node) { var set = node.closedNeighborhood(); for (var i = 1; i < depth; i++) set = set.union(set.nodes().closedNeighborhood()); return set; }
+  function select(name, center) {
+    var node = cy.getElementById(name);
+    if (!node.length) return;
+    current = name;
+    cy.elements().removeClass("faded focus lit gone");
+    var hood = neighbourhood(node);
+    if (onlyMode) { cy.elements().not(hood).addClass("gone"); } else { cy.elements().not(hood).addClass("faded"); }
+    node.addClass("focus"); hood.edges().addClass("lit");
+    if (center) cy.animate({ fit: { eles: hood, padding: 60 }, duration: matchMedia("(prefers-reduced-motion: reduce)").matches ? 0 : 250 });
+    renderSheet(byName[name]);
+    markList();
+    try { history.replaceState(null, "", "#" + encodeURIComponent(name)); } catch (e) {}
+  }
+  function clear() {
+    current = null; cy.elements().removeClass("faded focus lit gone"); renderSheet(null); markList();
+    try { history.replaceState(null, "", location.pathname + location.search); } catch (e) {}
+  }
+  cy.on("tap", "node", function (e) { select(e.target.id(), false); });
+  cy.on("tap", function (e) { if (e.target === cy) clear(); });
+
+  // Table sheet.
+  function renderSheet(t) {
+    var body = $("sheet-body"); body.textContent = "";
+    if (!t) { body.appendChild(el("p", "empty", "Click a table, or search one, to see its columns, indexes and relations.")); $("sheet").hidden = narrow(); return; }
+    $("sheet").hidden = false;
+    var top = el("div", "sheet-top"); top.appendChild(el("h2", "mono", t.name));
+    var close = el("button", "close", "×"); close.setAttribute("aria-label", "Close the table details"); close.addEventListener("click", clear);
+    top.appendChild(close); body.appendChild(top);
+    var badges = el("div", "badges");
+    badges.appendChild(el("span", "badge", t.columns.length + " columns"));
+    badges.appendChild(el("span", "badge", "domain " + domain(t.name)));
+    issues[t.name].forEach(function (i) { badges.appendChild(el("span", "badge warn", i)); });
+    body.appendChild(badges);
+    if (t.comment) body.appendChild(el("p", null, t.comment));
+    var pk = pkOf(t), fkCols = {};
+    (t.foreign_keys || []).forEach(function (fk) { fk.columns.forEach(function (c) { fkCols[c] = fk.foreign_table; }); });
+    var sec = el("section"); sec.appendChild(el("h3", null, "Columns"));
+    var wrap = el("div", "cols"), tb = el("table"), head = el("tr");
+    ["Column", "Type", "Null", "Default", "Key"].forEach(function (h) { head.appendChild(el("th", null, h)); });
+    tb.appendChild(head);
+    t.columns.forEach(function (c) {
+      var tr = el("tr");
+      tr.appendChild(el("td", "mono", c.name)); tr.appendChild(el("td", "mono", c.type || ""));
+      tr.appendChild(el("td", null, c.nullable ? "yes" : "no")); tr.appendChild(el("td", "mono", c.default == null ? "" : c.default));
+      tr.appendChild(el("td", "key", pk.indexOf(c.name) >= 0 ? "PK" : fkCols[c.name] ? "FK → " + fkCols[c.name] : ""));
+      tb.appendChild(tr);
+    });
+    wrap.appendChild(tb); sec.appendChild(wrap); body.appendChild(sec);
+    var idx = (t.indexes || []).filter(function (i) { return !i.primary; });
+    if (idx.length) {
+      var s2 = el("section"); s2.appendChild(el("h3", null, "Indexes"));
+      var ul = el("ul", "links"); idx.forEach(function (i) { ul.appendChild(el("li", "mono", i.name + " (" + i.columns.join(", ") + ")" + (i.unique ? " unique" : ""))); });
+      s2.appendChild(ul); body.appendChild(s2);
+    }
+    function linkList(title, items) {
+      if (!items.length) return;
+      var s = el("section"); s.appendChild(el("h3", null, title)); var ul = el("ul", "links");
+      items.forEach(function (it) {
+        var li = el("li"), b = el("button", "mono", it.table + "." + it.cols); b.addEventListener("click", function () { select(it.table, true); });
+        li.appendChild(b); if (it.warn) li.appendChild(el("span", "warn", "no index")); ul.appendChild(li);
+      });
+      s.appendChild(ul); body.appendChild(s);
+    }
+    linkList("References", (t.foreign_keys || []).map(function (fk) { return { table: fk.foreign_table, cols: fk.foreign_columns.join(","), warn: unindexed(t, fk) }; }));
+    var incoming = [];
+    tables.forEach(function (o) { (o.foreign_keys || []).forEach(function (fk) { if (fk.foreign_table === t.name) incoming.push({ table: o.name, cols: fk.columns.join(","), warn: unindexed(o, fk) }); }); });
+    linkList("Referenced by", incoming);
+  }
+
+  // Table list with search (table or column names) and the issues filter.
+  var issuesOnly = false;
+  function renderList() {
+    var q = $("q").value.trim().toLowerCase(), list = $("list"); list.textContent = "";
+    tables.filter(function (t) {
+      if (issuesOnly && !issues[t.name].length) return false;
+      return !q || t.name.toLowerCase().indexOf(q) >= 0 || t.columns.some(function (c) { return c.name.toLowerCase().indexOf(q) >= 0; });
+    }).sort(function (a, b) { return a.name.localeCompare(b.name); }).forEach(function (t) {
+      var li = el("li"); li.setAttribute("role", "option"); li.tabIndex = 0; li.dataset.name = t.name;
+      var sw = el("span", "sw"); sw.style.background = domainColor(domain(t.name)); li.appendChild(sw);
+      li.appendChild(el("span", "name mono", t.name));
+      if (issues[t.name].length) li.appendChild(el("span", "flag", "⚠ " + issues[t.name].length));
+      li.appendChild(el("span", "n", t.columns.length));
+      li.addEventListener("click", function () { select(t.name, true); if (innerWidth <= 700) $("side").classList.remove("open"); });
+      li.addEventListener("keydown", function (e) { if (e.key === "Enter") select(t.name, true); });
+      list.appendChild(li);
+    });
+    markList();
+  }
+  function markList() { Array.prototype.forEach.call($("list").children, function (li) { li.setAttribute("aria-selected", li.dataset.name === current ? "true" : "false"); }); }
+  $("q").addEventListener("input", renderList);
+  $("q").addEventListener("keydown", function (e) { if (e.key === "Enter") { var first = $("list").firstChild; if (first) select(first.dataset.name, true); } });
+  function setFilter(v) { issuesOnly = v; $("f-all").setAttribute("aria-pressed", String(!v)); $("f-issues").setAttribute("aria-pressed", String(v)); renderList(); }
+  $("f-all").addEventListener("click", function () { setFilter(false); });
+  $("f-issues").addEventListener("click", function () { setFilter(true); });
+
+  // Toolbar.
+  function zoomBy(f) { cy.zoom({ level: cy.zoom() * f, renderedPosition: { x: cy.width() / 2, y: cy.height() / 2 } }); }
+  function rotate(deg) {
+    var bb = cy.elements().not(".gone").boundingBox(), cx = (bb.x1 + bb.x2) / 2, cyy = (bb.y1 + bb.y2) / 2, a = deg * Math.PI / 180;
+    cy.nodes().positions(function (n) { var p = n.position(), dx = p.x - cx, dy = p.y - cyy; return { x: cx + dx * Math.cos(a) - dy * Math.sin(a), y: cyy + dx * Math.sin(a) + dy * Math.cos(a) }; });
+  }
+  $("z-in").addEventListener("click", function () { zoomBy(1.3); });
+  $("z-out").addEventListener("click", function () { zoomBy(1 / 1.3); });
+  $("z-fit").addEventListener("click", function () { cy.fit(cy.elements().not(".gone"), 40); });
+  $("r-left").addEventListener("click", function () { rotate(-15); });
+  $("r-right").addEventListener("click", function () { rotate(15); });
+  $("t-side").addEventListener("click", function () { $("side").classList.toggle("open"); });
+  function setDepth(d) { depth = d; $("d1").setAttribute("aria-pressed", String(d === 1)); $("d2").setAttribute("aria-pressed", String(d === 2)); if (current) select(current, true); }
+  $("d1").addEventListener("click", function () { setDepth(1); });
+  $("d2").addEventListener("click", function () { setDepth(2); });
+  $("only").addEventListener("click", function () { onlyMode = !onlyMode; this.setAttribute("aria-pressed", String(onlyMode)); if (current) { select(current, false); runLayout($("layout").value); select(current, true); } else if (!onlyMode) cy.elements().removeClass("gone"); });
+  $("layout").addEventListener("change", function () { runLayout(this.value); });
+  document.addEventListener("keydown", function (e) {
+    if (e.target.tagName === "INPUT" || e.target.tagName === "SELECT") { if (e.key === "Escape") e.target.blur(); return; }
+    if (e.key === "/") { e.preventDefault(); $("q").focus(); }
+    else if (e.key === "Escape") clear();
+    else if (e.key === "+" || e.key === "=") zoomBy(1.3);
+    else if (e.key === "-") zoomBy(1 / 1.3);
+    else if (e.key === "0") cy.fit(cy.elements().not(".gone"), 40);
+    else if (e.key === "[") rotate(-15);
+    else if (e.key === "]") rotate(15);
+  });
+  matchMedia("(prefers-color-scheme: dark)").addEventListener("change", function () { cy.style(style()); renderList(); });
+
+  $("sheet").hidden = narrow();
+  renderList();
+  runLayout(tables.length > 400 ? "grid" : "cose");
+  var start = decodeURIComponent((location.hash || "").slice(1));
+  if (start && byName[start]) setTimeout(function () { select(start, true); }, 60);
+})();
+</script>

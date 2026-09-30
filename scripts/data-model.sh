@@ -2,7 +2,7 @@
 # Document the real data model: tables, columns, keys, indexes and relations, with an ER diagram.
 #
 # Usage: bash data-model.sh [PROJECT_DIR] [--sqlite FILE | --from-json FILE] [--only REGEX]
-#                           [--json OUT] [--markdown OUT] [--report OUT]
+#                           [--json OUT] [--markdown OUT] [--report OUT] [--html OUT] [--artifact OUT]
 #
 # Source of the schema, never guessed:
 #   Laravel (artisan found)  the framework's own read-only introspection (Schema::getTables,
@@ -11,7 +11,9 @@
 #   --from-json FILE         a schema already in the normalized format (other stacks: Prisma,
 #                            Django, TypeORM… exported by the agent from the project's own tools).
 # Outputs: --json the normalized schema, --markdown docs page (Mermaid ER diagram + table
-# dictionary), --report visual report data. Checks: tables without a primary key, foreign keys
+# dictionary), --report visual report data, --html interactive explorer to open in a browser
+# (zoom, pan, rotate, search, focus a table and its neighbours, columns and relations; made for
+# hundreds of tables), --artifact the same explorer as a page body to publish and share. Checks: tables without a primary key, foreign keys
 # without an index (slow joins and deletes).
 # Only the schema is read, never rows. Credentials stay in the project's config and are never printed.
 # Exit code: 0 documented, 1 introspection failed, 2 usage error.
@@ -21,7 +23,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck source=lib.sh
 . "$SCRIPT_DIR/lib.sh"
 
-ROOT_ARG="." SQLITE="" FROM="" ONLY="" JSON_OUT="" MD_OUT="" REPORT_OUT="" NEXT=""
+ROOT_ARG="." SQLITE="" FROM="" ONLY="" JSON_OUT="" MD_OUT="" REPORT_OUT="" HTML_OUT="" ART_OUT="" NEXT=""
 for arg in "$@"; do
   case "$NEXT" in
     sqlite) SQLITE="$arg"; NEXT=""; continue ;;
@@ -30,15 +32,19 @@ for arg in "$@"; do
     json) JSON_OUT="$arg"; NEXT=""; continue ;;
     md) MD_OUT="$arg"; NEXT=""; continue ;;
     report) REPORT_OUT="$arg"; NEXT=""; continue ;;
+    html) HTML_OUT="$arg"; NEXT=""; continue ;;
+    artifact) ART_OUT="$arg"; NEXT=""; continue ;;
   esac
   case "$arg" in
-    -h|--help) sed -n '2,20p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
+    -h|--help) sed -n '2,23p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
     --sqlite) NEXT=sqlite ;;
     --from-json) NEXT=from ;;
     --only) NEXT=only ;;
     --json) NEXT=json ;;
     --markdown) NEXT=md ;;
     --report) NEXT=report ;;
+    --html) NEXT=html ;;
+    --artifact) NEXT=artifact ;;
     -*) sld_die "unknown option: $arg" ;;
     *) ROOT_ARG="$arg" ;;
   esac
@@ -110,9 +116,9 @@ else
   sld_die "no schema source: Laravel project not found; use --sqlite FILE or --from-json FILE"
 fi
 
-node - "$RAW" "$ONLY" "$JSON_OUT" "$MD_OUT" "$REPORT_OUT" "$SOURCE" <<'EOF'
+node - "$RAW" "$ONLY" "$JSON_OUT" "$MD_OUT" "$REPORT_OUT" "$SOURCE" "$HTML_OUT" "$ART_OUT" "$SCRIPT_DIR/../templates/data-model/explorer.html" <<'EOF'
 const fs = require("fs");
-const [raw, only, jsonOut, mdOut, reportOut, source] = process.argv.slice(2);
+const [raw, only, jsonOut, mdOut, reportOut, source, htmlOut, artOut, explorerTpl] = process.argv.slice(2);
 let s;
 try { s = JSON.parse(fs.readFileSync(raw, "utf8")); } catch (e) { console.error(`ERROR: invalid schema JSON: ${e.message}`); process.exit(2); }
 if (!Array.isArray(s.tables)) { console.error('ERROR: schema JSON needs "tables": [...]'); process.exit(2); }
@@ -214,5 +220,15 @@ console.log(`## Data model (${source})`);
 console.log(`${tables.length} tables · ${colCount} columns · ${fkCount} foreign keys${re ? ` (filter: ${only})` : ""}`);
 for (const n of noPk) console.log(`WARN:  no primary key: ${n}`);
 for (const f of fkNoIndex) console.log(`WARN:  foreign key without index: ${f}`);
+if (htmlOut || artOut) {
+  // Interactive explorer: the normalized schema embedded as JSON text ("<" escaped), rendered as text only.
+  const esc = (x) => String(x).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+  const json = JSON.stringify(norm).replace(/</g, "\\u003c").replace(/\u2028/g, "\\u2028").replace(/\u2029/g, "\\u2029");
+  const page = fs.readFileSync(explorerTpl, "utf8").replace("__SISKA_TITLE__", () => esc(`${s.database || "Database"} data model`)).replace("__SISKA_DATA__", () => json);
+  if (artOut) fs.writeFileSync(artOut, page);
+  if (htmlOut) fs.writeFileSync(htmlOut, `<!doctype html>\n<html lang="en">\n<head>\n<meta charset="utf-8">\n<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">\n</head>\n<body>\n${page}\n</body>\n</html>\n`);
+}
 if (mdOut) console.log(`written: ${mdOut}`);
+if (htmlOut) console.log(`written: ${htmlOut} (interactive explorer: zoom, pan, rotate, search, focus)`);
+if (artOut) console.log(`written: ${artOut} (explorer page to publish)`);
 EOF
