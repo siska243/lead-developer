@@ -48,10 +48,15 @@ If the project has an OpenAPI file or generator, update it with every API change
 | Stack | Tool |
 |-------|------|
 | FastAPI | built-in (`/openapi.json`) |
-| Laravel | `dedoc/scramble` or `knuckleswtf/scribe` |
+| Laravel | `dedoc/scramble` (types, defaults and enums inferred from FormRequests and API Resources) or `knuckleswtf/scribe` |
 | Symfony | API Platform, or `nelmio/api-doc-bundle` |
-| NestJS | `@nestjs/swagger` |
-| Express / other Node | `swagger-jsdoc` |
+| NestJS | `@nestjs/swagger` (DTO decorators) |
+| Express / Fastify / other Node | `@asteasolutions/zod-to-openapi` when the project validates with Zod, Fastify's `@fastify/swagger`, otherwise `swagger-jsdoc` |
+| Django REST framework | `drf-spectacular` |
+| Spring Boot | `springdoc-openapi` |
+| Go | `swaggo/swag` |
+
+Then `api-docs` turns the spec into an interactive page with a request client, a Postman collection and the data structures of every endpoint (`scripts/api-docs.sh`); `data-model` documents the database schema (`scripts/data-model.sh`).
 
 Validate the spec when possible: `npx @redocly/cli lint <openapi file>` (ask before downloading it).
 

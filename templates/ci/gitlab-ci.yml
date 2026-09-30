@@ -3,7 +3,7 @@
 # - siska-checks: tests and lint with check-project.sh after the project's own setup.
 # SISKA_REF pins the plugin version (a release tag or a commit SHA, never a branch).
 variables:
-  SISKA_REF: v1.11.0
+  SISKA_REF: v1.12.0
   GIT_DEPTH: 0 # the history scan and the merge request range need every commit
 
 .siska-get: &siska-get

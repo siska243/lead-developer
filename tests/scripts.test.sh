@@ -358,6 +358,62 @@ if command -v node >/dev/null 2>&1; then
   check "page-scan writes flat metrics" grep -q '"api_kb": 600' "$TMP/lh-metrics.json"
 fi
 
+# --- data-model: real schema (SQLite fixture), ER diagram, checks ---
+PY3="$(command -v python3 || true)"
+if [ -n "$PY3" ] && command -v node >/dev/null 2>&1; then
+  DMF="$TMP/dm.db"
+  "$PY3" -c 'import sqlite3,sys; sqlite3.connect(sys.argv[1]).executescript("""
+CREATE TABLE users(id INTEGER PRIMARY KEY, email TEXT NOT NULL UNIQUE);
+CREATE TABLE orders(id INTEGER PRIMARY KEY, user_id INTEGER NOT NULL REFERENCES users(id), total INTEGER NOT NULL DEFAULT 0);
+CREATE TABLE items(id INTEGER PRIMARY KEY, order_id INTEGER NOT NULL REFERENCES orders(id));
+CREATE INDEX items_order_id ON items(order_id);
+CREATE TABLE logs(message TEXT);""")' "$DMF"
+  out="$(bash "$REPO/scripts/data-model.sh" --sqlite "$DMF" --json "$TMP/dm.json" --markdown "$TMP/dm.md" --report "$TMP/dm-report.json" 2>&1)" && s=0 || s=$?
+  assert_status "data-model reads a SQLite schema" 0 "$s"
+  assert_contains "data-model counts" "$out" "4 tables · 8 columns · 2 foreign keys"
+  assert_contains "table without primary key found" "$out" "no primary key: logs"
+  assert_contains "foreign key without index found" "$out" "orders.user_id → users"
+  check "indexed foreign key not reported" not_contains "$out" "items.order_id"
+  check "ER relation drawn" grep -q 'users ||--o{ orders : "user_id"' "$TMP/dm.md"
+  check "default value documented" grep -q "| total | INTEGER | no | 0 |" "$TMP/dm.md"
+  check "diagram in the report" grep -q '"type": "diagram"' "$TMP/dm-report.json"
+  out="$(bash "$REPO/scripts/data-model.sh" --from-json "$TMP/dm.json" --only '^orders$' 2>&1)"
+  assert_contains "normalized JSON re-read with a filter" "$out" "1 tables"
+  bash "$REPO/scripts/data-model.sh" "$TMP" >/dev/null 2>&1 && s=0 || s=$?
+  assert_status "no schema source is a usage error" 2 "$s"
+fi
+
+# --- api-docs: OpenAPI -> interactive page, Postman collection, data structures ---
+if command -v node >/dev/null 2>&1; then
+  cat >"$TMP/openapi.json" <<'JSON'
+{"openapi":"3.1.0","info":{"title":"Shop API","version":"1.0.0"},"servers":[{"url":"http://127.0.0.1:8000/api"}],"security":[{"bearer":[]}],
+ "components":{"securitySchemes":{"bearer":{"type":"http","scheme":"bearer"}},"schemas":{
+  "Item":{"type":"object","required":["product_id"],"properties":{"product_id":{"type":"integer"},"quantity":{"type":"integer","minimum":1,"default":1}}},
+  "Order":{"allOf":[{"type":"object","required":["id"],"properties":{"id":{"type":"integer"}}},{"type":"object","properties":{"status":{"type":"string","enum":["pending","paid"],"default":"pending"},"items":{"type":"array","items":{"$ref":"#/components/schemas/Item"}}}}]}}},
+ "paths":{"/orders/{id}":{"get":{"tags":["Orders"],"summary":"Show an order","parameters":[{"in":"path","name":"id","required":true,"schema":{"type":"integer"}}],
+   "responses":{"200":{"description":"The order","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Order"}}}}}}},
+  "/orders":{"post":{"tags":["Orders"],"summary":"Create","requestBody":{"required":true,"content":{"application/json":{"schema":{"type":"object","required":["items"],"properties":{"items":{"type":"array","items":{"$ref":"#/components/schemas/Item"}}}}}}},"responses":{"201":{"description":"Created"}}}},
+  "/health":{"get":{"tags":["System"],"security":[],"summary":"Health","responses":{"204":{"description":"OK"}}}}}}
+JSON
+  out="$(bash "$REPO/scripts/api-docs.sh" "$TMP/openapi.json" --out "$TMP/apidocs" --report "$TMP/api-report.json" 2>&1)" && s=0 || s=$?
+  assert_status "api-docs builds" 0 "$s"
+  assert_contains "api-docs counts endpoints" "$out" "3 endpoints · 2 groups"
+  assert_contains "missing response schema reported" "$out" "no response schema: POST /orders"
+  C="$TMP/apidocs/shop-api.postman_collection.json"
+  check "postman collection v2.1" grep -q 'collection/v2.1.0/collection.json' "$C"
+  check "path variable in postman format" grep -q '{{baseUrl}}/orders/:id' "$C"
+  check "bearer auth uses the token variable" grep -q '"value": "{{token}}"' "$C"
+  check "no token value written" grep -q '"key": "token",' "$C"
+  check "public endpoint has no auth" grep -q '"type": "noauth"' "$C"
+  check "allOf fields merged with default and enum" grep -q '| `status` | string | no | pending | pending, paid |' "$TMP/apidocs/api-structures.md"
+  check "nested array fields flattened" grep -q '`items\[\].quantity`' "$TMP/apidocs/api-structures.md"
+  check "interactive page pins its library" grep -q '@scalar/api-reference@1.72.3' "$TMP/apidocs/index.html"
+  check "shared page has no document skeleton" not_contains "$(head -c 100 "$TMP/apidocs/artifact.html")" "<!doctype"
+  echo '{"swagger":"2.0","paths":{}}' >"$TMP/sw.json"
+  bash "$REPO/scripts/api-docs.sh" "$TMP/sw.json" --out "$TMP/sw" >/dev/null 2>&1 && s=0 || s=$?
+  assert_status "Swagger 2.0 is refused with a hint" 2 "$s"
+fi
+
 # --- mobile-scan: argument checks (the device measure itself needs a booted Android device) ---
 bash "$REPO/scripts/mobile-scan.sh" "not a package" >/dev/null 2>&1 && s=0 || s=$?
 assert_status "mobile-scan rejects an invalid package name" 2 "$s"

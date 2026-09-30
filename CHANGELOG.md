@@ -2,6 +2,12 @@
 
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), versions: [SemVer](https://semver.org/).
 
+## [1.12.0] - 2026-09-30
+### Added
+- `/siska-lead-developer:api-docs` and `scripts/api-docs.sh`: from the project's OpenAPI 3 file, an interactive reference with a request client (Scalar, pinned version), a Postman v2.1 collection (Postman, Insomnia, Bruno; `{{baseUrl}}`, `{{token}}`, one folder per tag, bodies from examples or schemas), `api-structures.md` (per endpoint: parameters, request and response fields with type, required, default, allowed values, format, limits, example; `$ref` and `allOf` resolved), and a shareable read-only page. Flags 2xx responses without schema. Generator per stack in `references/documentation.md` (Scramble, FastAPI, NestJS, zod-to-openapi, drf-spectacular, springdoc, swag…).
+- `/siska-lead-developer:data-model` and `scripts/data-model.sh`: the real schema (Laravel 11+ introspection, SQLite, or normalized JSON for other stacks) as `docs/data-model.md` with a Mermaid ER diagram and a table dictionary; flags tables without primary key and foreign keys without index.
+- Report template: `diagram` sections (Mermaid, pinned version).
+
 ## [1.11.0] - 2026-09-30
 ### Added
 - Performance budgets: `scripts/perf-budget.sh` (`run` measures every page and app of `.siska/perf-budget.json`, `check` compares a measure made elsewhere) fails when a metric passes its budget or drifts from its baseline (`.siska/perf/<name>.json`) by more than `tolerance_pct`; `--update-baseline` records a passing measure; visual report data. `check-code --perf`; `optimize` proposes a budget or a tighter one after an optimization; optional CI step.

@@ -161,3 +161,7 @@
   - 2026-09-30: ok to skip the commit gate for this update (old 1.8.1 hook); do suggestions 1 (CI) and 2 (history secret scan).
 - Result: committed 9215c2d, 8d2c78a, f9ed031 on feature/secret-scan-optimize (gate skipped with the user's OK: old 1.8.1 hook; new gate passes)
   - 2026-09-30: merged (PR #11); installed plugin updated 1.8.1 → 1.10.0, its gate passes on this repo without skip. Tag v1.10.0 still to create (CI templates pin it).
+## T28 · Performance budgets (stop pages and apps from getting heavier)
+- Status: ✅ done · Priority: P1 · Created: 2026-09-30 · Updated: 2026-09-30
+- Instructions: 2026-09-30 do suggestion 3: performance budgets – keep each page's measures and alert when weight or LCP grows.
+- Result: scripts/perf-budget.sh (run/check, budget + baseline drift, --update-baseline, report), --metrics on page-scan and mobile-scan, check-code --perf, optimize locks the gain, CI step; 13 tests; checked on the real Rubix metrics; v1.11.0

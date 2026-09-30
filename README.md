@@ -16,6 +16,8 @@ Fait travailler ton agent IA comme un **Lead Developer senior** : zéro régress
 | `/siska-lead-developer:optimize https://app.local/orders` | Tu donnes le lien d'une page : il la scanne, te fait un résumé et un plan, l'applique sur une branche `perf/` (les points à risque attendent ton oui), puis montre avant → après |
 | `/siska-lead-developer:optimize com.societe.app --flow .maestro/orders.yaml` | Mobile : mesure l'app sur un téléphone ou un émulateur (démarrage, images saccadées, mémoire), résumé, plan appliqué, avant → après |
 | `/siska-lead-developer:optimize front --orders` | Seulement certaines parties (`api`, `front`, `back`, `dead`, cumulables), seulement ce qui contient `orders` |
+| `/siska-lead-developer:api-docs` | Doc d'API façon Postman : page interactive pour lire et envoyer des requêtes, collection Postman (Postman, Insomnia, Bruno), champs envoyés et reçus avec type, obligatoire, défaut, valeurs possibles |
+| `/siska-lead-developer:data-model` | Structure de données : tables, colonnes, types, défauts, clés, relations, diagramme ER ; signale les tables sans clé primaire et les clés étrangères sans index |
 | `/siska-lead-developer:mcp <quoi exposer>` | Ajouter / auditer un serveur MCP |
 | `/siska-lead-developer:check-code` | Contrôle avant commit : tests, linters, secrets et clés en dur, `.env`. Commit refusé si quelque chose échoue |
 | `/siska-lead-developer:check-code --front` | Idem, uniquement le front (aussi `--back`, `--mobile`, cumulables) |
@@ -150,6 +152,51 @@ Le code aussi est documenté : chaque classe, fonction publique, endpoint, job o
 
 Tout est vérifié dans le code, rien n'est inventé, et le texte est écrit comme par un humain. La fiche va dans le dossier de documentation du projet, ou dans `docs/features/` s'il n'en a pas. Le fichier OpenAPI est mis à jour s'il existe.
 
+## Documentation de l'API et structure de données
+
+### Doc d'API façon Postman (`api-docs`)
+
+À partir du fichier OpenAPI du projet, trois choses :
+- **une page interactive** (`index.html`) : chaque route avec ce qu'elle accepte et ce qu'elle renvoie, un bouton **Test Request** et un client d'API pour envoyer de vraies requêtes, avec ton token saisi dans la page, jamais enregistré ;
+- **une collection Postman** (`*.postman_collection.json`), importable dans Postman, Insomnia ou Bruno : un dossier par groupe, des exemples de corps, les variables `{{baseUrl}}` et `{{token}}` ;
+- **la structure des données de l'API** (`api-structures.md`) : pour chaque route, les paramètres, les champs à envoyer et les champs renvoyés, avec le type, obligatoire ou non, la valeur par défaut, les valeurs possibles, le format, les limites et un exemple.
+
+Pour partager la doc, publie-la en page (artifact) : elle se lit partout, mais sans envoyer de requêtes, qu'une page partagée ne peut pas faire. Donne aussi la collection. Pour tester, ouvre `index.html` ou importe la collection.
+
+**Adapté à ta techno** : si le projet n'a pas de fichier OpenAPI, Siska propose le générateur de ton stack, qui lit tes vraies règles de validation et tes ressources. Il l'installe seulement après ton accord :
+
+| Stack | Générateur |
+|---|---|
+| Laravel | Scramble (types, défauts, énumérations tirés des FormRequest et des API Resources) |
+| FastAPI | intégré (`/openapi.json`) |
+| Symfony | API Platform ou NelmioApiDocBundle |
+| NestJS | `@nestjs/swagger` |
+| Express / Fastify | `zod-to-openapi` (si tu valides avec Zod) ou `@fastify/swagger` |
+| Django REST | drf-spectacular |
+| Spring Boot | springdoc-openapi |
+| Go | swag |
+
+Si ton dépôt contient déjà une collection Postman, Insomnia ou Bruno, c'est celle-là qui est mise à jour.
+
+```bash
+bash scripts/api-docs.sh openapi.json --out docs/api --base-url http://localhost:8000/api
+```
+
+### Structure de données (`data-model`)
+
+Lit le **vrai schéma** de la base, en lecture seule, sans jamais lire les lignes : tables, colonnes, types, valeurs par défaut, clés, index et relations. Il écrit `docs/data-model.md`, avec un diagramme ER Mermaid et le dictionnaire des tables, et un rapport visuel. Il signale les tables sans clé primaire et les **clés étrangères sans index**. PostgreSQL ne les crée pas automatiquement, et leur absence ralentit les jointures et les suppressions.
+
+- Laravel 11+ : l'introspection du framework, sur la connexion configurée.
+- SQLite : `--sqlite fichier.db`.
+- Autres stacks (Prisma, Django, Doctrine, TypeORM, Rails…) : le schéma est exporté avec l'outil du projet, puis passé en `--from-json`.
+- Plus de 60 tables : un diagramme par domaine, avec `--only 'order|client'`.
+
+Si la configuration pointe vers une base de production, Siska demande avant de s'y connecter.
+
+```bash
+bash scripts/data-model.sh . --markdown docs/data-model.md
+```
+
 ## Technologies et dépendances à jour
 
 - Un nouveau projet ou une nouvelle dépendance part sur la dernière version stable (LTS pour les runtimes et frameworks), vérifiée sur le registre au moment du choix.
@@ -244,6 +291,8 @@ bash scripts/page-scan.sh <url> [--report data.json]   # poids, requêtes, appel
 bash scripts/page-scan.sh --login <url>                # se connecter une fois pour scanner les pages protégées
 bash scripts/mobile-scan.sh <package> [--flow f.yaml]  # performance d'une app Android (adb, Maestro)
 bash scripts/perf-budget.sh . run [--update-baseline]  # budgets de performance des pages et apps
+bash scripts/api-docs.sh openapi.json --out docs/api   # doc interactive, collection Postman, structures de l'API
+bash scripts/data-model.sh . --markdown docs/data-model.md   # schéma de la base, diagramme ER
 bash scripts/report.sh data.json --out r.html --standalone   # rapport visuel
 ```
 
