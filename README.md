@@ -58,6 +58,12 @@ Avant chaque commit, `scripts/secret-scan.sh` cherche dans les lignes ajoutées 
 
 Ce contrôle tourne **toujours**, même avec `gate off` ou `SISKA_SKIP_GATE=1` : une clé committée reste dans l'historique git. Les références à des variables d'environnement (`env("DB_PASSWORD")`, `process.env.X`, `${VAR}`) et les valeurs d'exemple (`<your-token>`) passent. Une fausse alerte vérifiée (fixture de test) se marque avec un commentaire `siska:allow-secret` sur la ligne. Une clé déjà committée est compromise : il faut la changer.
 
+### Historique git et CI
+
+- `bash scripts/secret-scan.sh . --history` (ou `/siska-lead-developer:check-code --history`) scanne **tous les commits de toutes les branches**. Une clé committée il y a longtemps, même supprimée depuis, reste lisible dans chaque clone : il faut la changer. Les valeurs sont masquées dans le résultat (`AKIA****`).
+- Une fausse alerte déjà dans l'historique se déclare dans `.siska/secrets-allow`, avec sa raison : `<commit> <fichier>:<ligne>`.
+- **CI** : les hooks locaux se contournent (`--no-verify`, un autre poste, une modification sur le web). `templates/ci/github-actions.yml` et `templates/ci/gitlab-ci.yml` relancent sur chaque PR le scan de secrets (commits de la PR et historique complet), puis les tests et le lint. Siska propose de les ajouter à la CI existante du projet, jamais sans ton accord. Ce dépôt a la sienne : `.github/workflows/checks.yml`.
+
 ### Pas de co-auteur IA
 
 Les messages de commit et les descriptions de PR décrivent le changement technique, sans ligne `Co-Authored-By:` d'un outil d'IA ni « Generated with … ». Le hook refuse ces commits (et `gh pr create/edit` dans Claude Code) ; le hook git `commit-msg` fait de même pour les autres agents. Un co-auteur humain reste accepté.

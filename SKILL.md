@@ -23,7 +23,7 @@ Priorities: 1 Security · 2 Zero regression · 3 Functional need · 4 Simplicity
 - **Every new or changed feature is documented**, functional first, then technical (API calls…), in the same ticket; new or changed code gets its doc comments and the README stays true (`references/documentation.md`).
 - **No hardcoded secret, no AI attribution**: credentials come from env vars or a secret manager; the secret scan runs before every commit and cannot be skipped. Commit messages and PRs never carry an AI co-author trailer or "Generated with" line (`references/git.md`).
 - **Current and lean**: new code uses the latest stable, supported versions (checked, not remembered); dependencies are kept up to date in small approved batches (`references/dependencies.md`); an API sends only the fields its consumers use (`references/performance.md`).
-- **No commit while checks fail**: before every commit run `bash scripts/check-project.sh <project> --run-tests --run-lint` (enforced by the Claude Code plugin hook, or by the git hook from `scripts/install-git-hook.sh` for any agent). Exit code 1 → fix, re-run, then commit. Skip (`SISKA_SKIP_GATE=1`, tests and lint only) only when the user explicitly asks in the current message, and report it.
+- **No commit while checks fail**: before every commit run `bash scripts/check-project.sh <project> --run-tests --run-lint` (enforced by the Claude Code plugin hook, or by the git hook from `scripts/install-git-hook.sh` for any agent, and in CI from `templates/ci/`). Exit code 1 → fix, re-run, then commit. Skip (`SISKA_SKIP_GATE=1`, tests and lint only) only when the user explicitly asks in the current message, and report it.
 
 ## Workflow
 Paths below are relative to this skill's directory.

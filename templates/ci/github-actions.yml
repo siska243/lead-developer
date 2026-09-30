@@ -1,0 +1,42 @@
+# siska-lead-developer checks for a project on GitHub Actions: .github/workflows/siska-checks.yml
+# - secrets: secret scan of the pull request commits and of the whole history (no setup needed);
+# - checks: tests and lint with check-project.sh (or .siska/checks) after the project's own setup.
+# SISKA_REF pins the plugin version (a release tag or a commit SHA, never a branch).
+name: siska-checks
+on:
+  pull_request:
+  push:
+    branches: [main]
+permissions:
+  contents: read
+env:
+  SISKA_REF: v1.10.0
+jobs:
+  secrets:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+      - name: Get siska-lead-developer
+        run: git clone --quiet --depth 1 --branch "$SISKA_REF" https://github.com/siska243/lead-developer "$RUNNER_TEMP/siska"
+      - name: Secret scan of the pull request commits
+        if: github.event_name == 'pull_request'
+        env:
+          BASE: ${{ github.event.pull_request.base.sha }}
+          HEAD: ${{ github.event.pull_request.head.sha }}
+        run: bash "$RUNNER_TEMP/siska/scripts/secret-scan.sh" . --range "$BASE..$HEAD"
+      - name: Secret scan of the whole history
+        run: bash "$RUNNER_TEMP/siska/scripts/secret-scan.sh" . --history
+  checks:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      # The project's own setup goes here, copied from its existing workflow
+      # (runtime versions, dependency install, services such as a database).
+      - name: Get siska-lead-developer
+        run: git clone --quiet --depth 1 --branch "$SISKA_REF" https://github.com/siska243/lead-developer "$RUNNER_TEMP/siska"
+      - name: Tests and lint
+        run: bash "$RUNNER_TEMP/siska/scripts/check-project.sh" . --run-tests --run-lint
