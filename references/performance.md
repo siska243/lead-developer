@@ -78,5 +78,14 @@ Command: `optimize` (`skills/optimize/SKILL.md`); result delivered as a visual r
 - Mobile: React Native perf monitor, Flipper / dev tools, device testing (not only simulator).
 - Memory/CPU: profilers of the runtime.
 
+## Performance budgets
+Pages and apps get heavy one small change at a time; a budget stops each step in the pull request that causes it.
+- `.siska/perf-budget.json` (committed): limits per page (`pages`: `url`, `desktop`, `budget`) and per app (`apps`: `package`, `flow`, `budget`), and `tolerance_pct` (default 10). Syntax: `scripts/perf-budget.sh --help`.
+- `.siska/perf/<name>.json` (committed): the baseline, the last accepted measure. A metric fails when it passes its budget, or gets worse than the baseline by more than the tolerance, even under the budget.
+- `bash scripts/perf-budget.sh . run` measures every entry (`page-scan.sh` / `mobile-scan.sh`); `check <name> <metrics.json>` compares a measure made elsewhere (`--metrics` of both scan scripts).
+- **First budget**: the current measure plus the tolerance, so it stops the growth today; after each accepted optimization, tighten it and record the new baseline (`--update-baseline`, recorded only when the measure passes). Targets to aim for: LCP ≤ 2500 ms, TBT ≤ 200 ms, CLS ≤ 0.1 (Core Web Vitals); on mobile, cold start ≤ 1500 ms, janky frames ≤ 5% on a mid-range phone.
+- Budgets and baselines come from the same environment: a production build or staging for the web (never a dev server), a release build on the same device for mobile. Changing a budget or a baseline is a decision the user approves.
+- In CI: build and start the app the way the project already does in its pipeline, then `perf-budget.sh . run` (`templates/ci/README.md`).
+
 ## Scalability (only when needed)
 Database load, cache, queues, API rate, storage, concurrency, network, async processing. No premature optimization.

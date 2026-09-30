@@ -38,4 +38,5 @@ bash scripts/report.sh data.json --out .siska/reports/x.html --standalone   # fi
 - `status`: `ok`, `warn`, `fail`, `info`. `severity`: `critical`, `high`, `medium`, `low`, `info`.
 - A table cell can be a string, a number, or `{ "text", "status" }` (shown as a pill).
 - `compare.better`: `lower` (default) or `higher`.
+- `{ "type": "diagram", "title": "…", "code": "<Mermaid source>" }` draws a diagram (ER, flow); the source stays shown if the library cannot load.
 - Never put secrets, tokens, session cookies, passwords or personal data in the JSON: the page may be shared.

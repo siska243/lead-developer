@@ -16,6 +16,8 @@ Fait travailler ton agent IA comme un **Lead Developer senior** : zéro régress
 | `/siska-lead-developer:optimize https://app.local/orders` | Tu donnes le lien d'une page : il la scanne, te fait un résumé et un plan, l'applique sur une branche `perf/` (les points à risque attendent ton oui), puis montre avant → après |
 | `/siska-lead-developer:optimize com.societe.app --flow .maestro/orders.yaml` | Mobile : mesure l'app sur un téléphone ou un émulateur (démarrage, images saccadées, mémoire), résumé, plan appliqué, avant → après |
 | `/siska-lead-developer:optimize front --orders` | Seulement certaines parties (`api`, `front`, `back`, `dead`, cumulables), seulement ce qui contient `orders` |
+| `/siska-lead-developer:api-docs` | Doc d'API façon Postman : page interactive pour lire et envoyer des requêtes, collection Postman (Postman, Insomnia, Bruno), champs envoyés et reçus avec type, obligatoire, défaut, valeurs possibles |
+| `/siska-lead-developer:data-model` | Structure de données : tables, colonnes, types, défauts, clés, relations, diagramme ER ; signale les tables sans clé primaire et les clés étrangères sans index |
 | `/siska-lead-developer:mcp <quoi exposer>` | Ajouter / auditer un serveur MCP |
 | `/siska-lead-developer:check-code` | Contrôle avant commit : tests, linters, secrets et clés en dur, `.env`. Commit refusé si quelque chose échoue |
 | `/siska-lead-developer:check-code --front` | Idem, uniquement le front (aussi `--back`, `--mobile`, cumulables) |
@@ -95,6 +97,25 @@ bash scripts/page-scan.sh --logout                                # ferme et eff
 
 La session vit dans un profil Chrome privé, hors du projet (`~/.cache/siska/chrome-profile`). Les cookies de session, sans date d'expiration, meurent quand Chrome se ferme : c'est pour ça que la connexion et la mesure se font dans le même Chrome. Le token et le mot de passe passent uniquement par des variables d'environnement : ils ne sont jamais affichés, écrits dans un fichier ou mis dans le rapport. Si tu donnes un token ou un mot de passe à l'agent dans le chat, il reste dans l'historique de la conversation : préfère `--ask`, ou un token de test à durée courte. Si un MCP navigateur (Playwright MCP, Chrome DevTools MCP) est installé, il sert en plus à mesurer les requêtes faites pendant les actions : filtres, tri, pagination. Sur un serveur de dev (Vite, `next dev`), un avertissement rappelle que les chiffres ne sont pas ceux de la production.
 
+### Budgets de performance
+
+Pour que tes pages ne redeviennent pas lourdes petit à petit :
+
+```json
+// .siska/perf-budget.json (commité)
+{ "tolerance_pct": 10,
+  "pages": { "dossiers": { "url": "http://localhost:4173/order-v2", "desktop": true,
+             "budget": { "api_kb": 800, "transferred_kb": 1500, "lcp_ms": 2500, "duplicate_requests": 0 } } },
+  "apps":  { "android": { "package": "com.societe.app", "flow": ".maestro/dossiers.yaml",
+             "budget": { "cold_start_ms": 1500, "janky_pct": 5 } } } }
+```
+
+- `bash scripts/perf-budget.sh . run`, ou `/siska-lead-developer:check-code --perf`, mesure chaque page et chaque app, et **échoue** si une limite est dépassée.
+- Il échoue aussi si une mesure se dégrade de plus de 10 % par rapport à la **référence** (`.siska/perf/<nom>.json`, la dernière mesure acceptée), même sous la limite.
+- Après une optimisation, `optimize` propose de resserrer le budget et d'enregistrer la nouvelle référence (`--update-baseline`), avec ton accord.
+- En CI : après le build et le démarrage de l'app, l'étape `perf-budget.sh . run` bloque la PR qui alourdit une page.
+- Mesure toujours dans les mêmes conditions : build de production ou staging pour le web (jamais le serveur de dev), build release sur le même téléphone pour le mobile.
+
 ### Applications mobiles
 
 La même commande marche pour React Native, Expo et Android, avec les outils standards du mobile, puisque Lighthouse ne mesure que le web :
@@ -130,6 +151,51 @@ Chaque nouvelle fonctionnalité, ou fonctionnalité modifiée, est documentée d
 Le code aussi est documenté : chaque classe, fonction publique, endpoint, job ou script nouveau ou modifié reçoit son commentaire de documentation (rôle, paramètres, retour, erreurs, effets de bord), et les commentaires expliquent le *pourquoi*. Le README reste juste : installer, configurer (noms des variables d'environnement), lancer, tester, déployer.
 
 Tout est vérifié dans le code, rien n'est inventé, et le texte est écrit comme par un humain. La fiche va dans le dossier de documentation du projet, ou dans `docs/features/` s'il n'en a pas. Le fichier OpenAPI est mis à jour s'il existe.
+
+## Documentation de l'API et structure de données
+
+### Doc d'API façon Postman (`api-docs`)
+
+À partir du fichier OpenAPI du projet, trois choses :
+- **une page interactive** (`index.html`) : chaque route avec ce qu'elle accepte et ce qu'elle renvoie, un bouton **Test Request** et un client d'API pour envoyer de vraies requêtes, avec ton token saisi dans la page, jamais enregistré ;
+- **une collection Postman** (`*.postman_collection.json`), importable dans Postman, Insomnia ou Bruno : un dossier par groupe, des exemples de corps, les variables `{{baseUrl}}` et `{{token}}` ;
+- **la structure des données de l'API** (`api-structures.md`) : pour chaque route, les paramètres, les champs à envoyer et les champs renvoyés, avec le type, obligatoire ou non, la valeur par défaut, les valeurs possibles, le format, les limites et un exemple.
+
+Pour partager la doc, publie-la en page (artifact) : elle se lit partout, mais sans envoyer de requêtes, qu'une page partagée ne peut pas faire. Donne aussi la collection. Pour tester, ouvre `index.html` ou importe la collection.
+
+**Adapté à ta techno** : si le projet n'a pas de fichier OpenAPI, Siska propose le générateur de ton stack, qui lit tes vraies règles de validation et tes ressources. Il l'installe seulement après ton accord :
+
+| Stack | Générateur |
+|---|---|
+| Laravel | Scramble (types, défauts, énumérations tirés des FormRequest et des API Resources) |
+| FastAPI | intégré (`/openapi.json`) |
+| Symfony | API Platform ou NelmioApiDocBundle |
+| NestJS | `@nestjs/swagger` |
+| Express / Fastify | `zod-to-openapi` (si tu valides avec Zod) ou `@fastify/swagger` |
+| Django REST | drf-spectacular |
+| Spring Boot | springdoc-openapi |
+| Go | swag |
+
+Si ton dépôt contient déjà une collection Postman, Insomnia ou Bruno, c'est celle-là qui est mise à jour.
+
+```bash
+bash scripts/api-docs.sh openapi.json --out docs/api --base-url http://localhost:8000/api
+```
+
+### Structure de données (`data-model`)
+
+Lit le **vrai schéma** de la base, en lecture seule, sans jamais lire les lignes : tables, colonnes, types, valeurs par défaut, clés, index et relations. Il écrit `docs/data-model.md`, avec un diagramme ER Mermaid et le dictionnaire des tables, et un rapport visuel. Il signale les tables sans clé primaire et les **clés étrangères sans index**. PostgreSQL ne les crée pas automatiquement, et leur absence ralentit les jointures et les suppressions.
+
+- Laravel 11+ : l'introspection du framework, sur la connexion configurée.
+- SQLite : `--sqlite fichier.db`.
+- Autres stacks (Prisma, Django, Doctrine, TypeORM, Rails…) : le schéma est exporté avec l'outil du projet, puis passé en `--from-json`.
+- Plus de 60 tables : un diagramme par domaine, avec `--only 'order|client'`.
+
+Si la configuration pointe vers une base de production, Siska demande avant de s'y connecter.
+
+```bash
+bash scripts/data-model.sh . --markdown docs/data-model.md
+```
 
 ## Technologies et dépendances à jour
 
@@ -224,6 +290,9 @@ bash scripts/secret-scan.sh <projet>                   # secrets et clés en dur
 bash scripts/page-scan.sh <url> [--report data.json]   # poids, requêtes, appels API et doublons d'une page (Lighthouse)
 bash scripts/page-scan.sh --login <url>                # se connecter une fois pour scanner les pages protégées
 bash scripts/mobile-scan.sh <package> [--flow f.yaml]  # performance d'une app Android (adb, Maestro)
+bash scripts/perf-budget.sh . run [--update-baseline]  # budgets de performance des pages et apps
+bash scripts/api-docs.sh openapi.json --out docs/api   # doc interactive, collection Postman, structures de l'API
+bash scripts/data-model.sh . --markdown docs/data-model.md   # schéma de la base, diagramme ER
 bash scripts/report.sh data.json --out r.html --standalone   # rapport visuel
 ```
 

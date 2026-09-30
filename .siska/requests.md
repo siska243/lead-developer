@@ -3,17 +3,15 @@
 
 
 
-## T25 · Update the plugin (commit, push, installed version)
-- Status: 🔄 in progress · Priority: P1 · Created: 2026-09-30 · Updated: 2026-09-30
-- Instructions: 2026-09-30 nothing applied to Rubix; update the plugin. What did I forget to make the plugin more efficient and interesting?
-  - 2026-09-30: ok to skip the commit gate for this update (old 1.8.1 hook); do suggestions 1 (CI) and 2 (history secret scan).
 
-## T26 · Checks in CI (tests, lint, secret scan on every PR)
-- Status: ✅ done · Priority: P1 · Created: 2026-09-30 · Updated: 2026-09-30
-- Instructions: 2026-09-30 suggestion 1: run the checks in CI, since local hooks can be bypassed.
-- Result: .github/workflows/checks.yml (plugin) + templates/ci GitHub Actions and GitLab CI; actions pinned by verified commit SHA; not run on GitHub yet (first run on the PR)
 
-## T27 · Secret scan of the whole git history
-- Status: ✅ done · Priority: P1 · Created: 2026-09-30 · Updated: 2026-09-30
-- Instructions: 2026-09-30 suggestion 2: scan the whole git history for secrets committed in the past.
-- Result: secret-scan.sh --history / --range, masked output with commit and file:line, .siska/secrets-allow; check-code --history; 9 tests
+## T29 · Data structure documentation (data model)
+- Status: ✅ done · Priority: P2 · Created: 2026-09-30 · Updated: 2026-09-30
+- Instructions: 2026-09-30 add the data structure to the plugin; add it to help, update the README etc.
+- Result: data-model command + scripts/data-model.sh (Laravel 11+ introspection, SQLite, normalized JSON), Mermaid ER + dictionary + checks; verified on Rubix PostgreSQL read-only (229 tables, 351 FKs without index); demo https://claude.ai/artifact/JNP126CxkQNNyZEB1dAGjh
+
+## T30 · Postman-like API documentation: shareable, with requests
+- Status: ✅ done · Priority: P2 · Created: 2026-09-30 · Updated: 2026-09-30
+- Instructions: 2026-09-30 something like Postman: document the API, share it, make requests from it; add it to help, update the README etc.
+  - 2026-09-30: also the API data structure: what the API returns and what can be sent, with type, default value etc.; it must adapt to the technology and the work environment of whoever installs it.
+- Result: api-docs command + scripts/api-docs.sh: Scalar interactive page with request client, Postman v2.1 collection, api-structures.md (type, required, default, enum, format, example), shared page; generator per stack; demo https://claude.ai/artifact/9f1mHjqaMtr2rXZZyLBL3t

@@ -1,14 +1,15 @@
 #!/usr/bin/env bash
 # Measure an Android app on a device or emulator and summarize what makes it slow.
 #
-# Usage: bash mobile-scan.sh <android package> [--flow maestro.yaml] [--runs N] [--serial ID] [--report FILE]
+# Usage: bash mobile-scan.sh <android package> [--flow maestro.yaml] [--runs N] [--serial ID] [--report FILE] [--metrics FILE]
 #
 # Standard Android platform tools only (adb, am, dumpsys), plus Maestro when a flow is given:
 #   - cold start: `am start -W -S`, median of --runs (default 3);
 #   - smoothness while the screen is used: `dumpsys gfxinfo` (frames, janky %, frame time
 #     percentiles) during the Maestro flow, or during a few scrolls when no flow is given;
 #   - memory (`dumpsys meminfo`, total PSS), CPU (`dumpsys cpuinfo`), installed size (APKs).
-# --report writes the visual report data (templates/report/README.md) for scripts/report.sh.
+# --report writes the visual report data (templates/report/README.md) for scripts/report.sh;
+# --metrics the flat numbers (cold_start_ms, janky_pct, frame_p90_ms, memory_mb, cpu_pct, size_mb) for perf-budget.sh.
 # Works with release and debug builds; measure a release build (debug/dev bundles are much slower).
 # For pages behind a login, log in inside the flow (Maestro) with a test account.
 # Read-only on the project; on the device it only launches and stops the app.
@@ -19,13 +20,14 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck source=lib.sh
 . "$SCRIPT_DIR/lib.sh"
 
-PKG="" FLOW="" RUNS=3 SERIAL="" REPORT_DATA="" NEXT=""
+PKG="" FLOW="" RUNS=3 SERIAL="" REPORT_DATA="" METRICS="" NEXT=""
 for arg in "$@"; do
   case "$NEXT" in
     flow) FLOW="$arg"; NEXT=""; continue ;;
     runs) RUNS="$arg"; NEXT=""; continue ;;
     serial) SERIAL="$arg"; NEXT=""; continue ;;
     report) REPORT_DATA="$arg"; NEXT=""; continue ;;
+    metrics) METRICS="$arg"; NEXT=""; continue ;;
   esac
   case "$arg" in
     -h|--help) sed -n '2,16p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
@@ -33,6 +35,7 @@ for arg in "$@"; do
     --runs) NEXT=runs ;;
     --serial) NEXT=serial ;;
     --report) NEXT=report ;;
+    --metrics) NEXT=metrics ;;
     -*) sld_die "unknown option: $arg" ;;
     *) PKG="$arg" ;;
   esac
@@ -90,9 +93,9 @@ while IFS= read -r apk; do
   b="$(sh_ stat -c %s "${apk#package:}")"; [ -n "$b" ] && apk_bytes=$((apk_bytes + b))
 done < <(sh_ pm path "$PKG")
 
-node - "$TMPD" "$PKG" "$model" "$release" "$debuggable" "${cold:-}" "$apk_bytes" "${starts[*]:-}" "$REPORT_DATA" "${FLOW:-}" "$emulator" <<'EOF'
+node - "$TMPD" "$PKG" "$model" "$release" "$debuggable" "${cold:-}" "$apk_bytes" "${starts[*]:-}" "$REPORT_DATA" "${FLOW:-}" "$emulator" "$METRICS" <<'EOF'
 const fs = require("fs");
-const [dir, pkg, model, release, debug, cold, apk, starts, reportPath, flow, emu] = process.argv.slice(2);
+const [dir, pkg, model, release, debug, cold, apk, starts, reportPath, flow, emu, metricsPath] = process.argv.slice(2);
 const gfx = fs.readFileSync(`${dir}/gfx.txt`, "utf8"), mem = fs.readFileSync(`${dir}/mem.txt`, "utf8"), cpu = fs.readFileSync(`${dir}/cpu.txt`, "utf8");
 const grab = (re, s = gfx) => { const m = s.match(re); return m ? Number(m[1]) : null; };
 const frames = grab(/Total frames rendered:\s*(\d+)/), janky = grab(/Janky frames:\s*\d+\s*\(([\d.]+)%\)/);
@@ -134,5 +137,12 @@ if (reportPath) {
   };
   if (warns.length) data.sections.unshift({ type: "notes", title: "Warnings", items: warns });
   fs.writeFileSync(reportPath, JSON.stringify(data, null, 2));
+}
+if (metricsPath) {
+  fs.writeFileSync(metricsPath, JSON.stringify({
+    kind: "mobile", target: `${pkg} on ${model} (Android ${release})`, measured_at: new Date().toISOString(),
+    cold_start_ms: coldMs, janky_pct: janky, frame_p90_ms: p90, memory_mb: pss == null ? null : Math.round(pss / 1024),
+    cpu_pct: cpuPct, size_mb: Math.round(Number(apk) / 1048576), debug_build: debug !== "0", emulator: emu === "1",
+  }, null, 2));
 }
 EOF
