@@ -1,0 +1,184 @@
+<title>__SISKA_TITLE__</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: inspection sheet – verdict first, gauges strip, then evidence sections read top to bottom. */
+:root {
+  --bg: #f6f7f9; --surface: #ffffff; --fg: #17202b; --muted: #5b6776; --line: #dde2e8;
+  --accent: #1f5f8b; --ok: #1d7a4c; --ok-bg: #e3f3ea; --warn: #9a6300; --warn-bg: #fbf0d9;
+  --fail: #b3261e; --fail-bg: #fbe4e2; --info: #3d5a80; --info-bg: #e6edf6;
+  --font-display: "Instrument Sans", "Segoe UI", system-ui, sans-serif;
+  --font-body: "Instrument Sans", "Segoe UI", system-ui, sans-serif;
+  --font-data: "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+  --radius: 8px;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #0f141a; --surface: #161d25; --fg: #e6ebf1; --muted: #93a1b1; --line: #26313d;
+  --accent: #6fb3e0; --ok: #5cc98f; --ok-bg: #133024; --warn: #e6b04f; --warn-bg: #33270f;
+  --fail: #f2877f; --fail-bg: #3a1916; --info: #9db8da; --info-bg: #1b2636; color-scheme: dark } }
+:root[data-theme="dark"] {
+  --bg: #0f141a; --surface: #161d25; --fg: #e6ebf1; --muted: #93a1b1; --line: #26313d;
+  --accent: #6fb3e0; --ok: #5cc98f; --ok-bg: #133024; --warn: #e6b04f; --warn-bg: #33270f;
+  --fail: #f2877f; --fail-bg: #3a1916; --info: #9db8da; --info-bg: #1b2636; color-scheme: dark }
+* { box-sizing: border-box }
+body { background: var(--bg); color: var(--fg); font: 15px/1.55 var(--font-body); padding-inline: 16px; padding-block: 28px 56px }
+.wrap { max-width: 1040px; margin: 0 auto; display: grid; gap: 28px }
+a { color: var(--accent) } a:focus-visible, button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px }
+.mono { font-family: var(--font-data); font-size: .86em; font-variant-numeric: tabular-nums }
+header { display: grid; gap: 10px }
+.eyebrow { font: 600 12px/1 var(--font-data); letter-spacing: .08em; text-transform: uppercase; color: var(--muted) }
+h1 { font: 700 clamp(26px, 4vw, 36px)/1.15 var(--font-display); margin: 0; text-wrap: balance }
+h2 { font: 600 18px/1.3 var(--font-display); margin: 0 0 12px }
+.meta { display: flex; flex-wrap: wrap; gap: 6px 18px; color: var(--muted); font-size: 13px }
+.meta span { min-width: 0; overflow-wrap: anywhere }
+.verdict { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 16px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 16px 18px }
+.verdict p { margin: 0; flex: 1 1 320px; min-width: 0 }
+.pill { display: inline-flex; align-items: center; gap: 6px; font: 600 13px/1 var(--font-body); padding: 7px 12px; border-radius: 999px; white-space: nowrap }
+.s-ok { color: var(--ok); background: var(--ok-bg) } .s-warn { color: var(--warn); background: var(--warn-bg) }
+.s-fail { color: var(--fail); background: var(--fail-bg) } .s-info { color: var(--info); background: var(--info-bg) }
+.metrics { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px }
+.metric { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 14px 16px; display: grid; gap: 4px; min-width: 0 }
+.metric .label { font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: .05em }
+.metric .value { font: 600 26px/1.1 var(--font-data); font-variant-numeric: tabular-nums }
+.metric .value small { font-size: 13px; color: var(--muted); font-weight: 400 }
+.metric .delta { font: 500 12px/1.3 var(--font-data); color: var(--muted) }
+.metric .dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-right: 6px }
+section { display: grid; gap: 4px; min-width: 0 }
+.scroll { overflow-x: auto; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius) }
+table { border-collapse: collapse; width: 100%; font-size: 13.5px }
+th, td { text-align: left; padding: 9px 12px; border-bottom: 1px solid var(--line); vertical-align: top }
+th { font: 600 11.5px/1.2 var(--font-body); text-transform: uppercase; letter-spacing: .05em; color: var(--muted); background: var(--bg); position: sticky; top: 0 }
+tr:last-child td { border-bottom: 0 }
+td.num { font-family: var(--font-data); font-variant-numeric: tabular-nums; white-space: nowrap }
+.findings { list-style: none; margin: 0; padding: 0; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius) }
+.findings li { display: grid; grid-template-columns: auto 1fr; gap: 6px 14px; padding: 14px 16px; border-bottom: 1px solid var(--line) }
+.findings li:last-child { border-bottom: 0 }
+.findings li > .pill { align-self: start; justify-self: start }
+.findings .body { display: grid; gap: 4px; min-width: 0 }
+.findings .title { font-weight: 600 }
+.findings .where { color: var(--accent); overflow-wrap: anywhere }
+.findings dl { display: grid; grid-template-columns: max-content 1fr; gap: 2px 10px; margin: 4px 0 0; font-size: 13.5px }
+.findings dt { color: var(--muted) } .findings dd { margin: 0; min-width: 0; overflow-wrap: anywhere }
+.compare { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 14px 16px; display: grid; gap: 14px }
+.bar-row { display: grid; grid-template-columns: minmax(90px, 160px) 1fr; gap: 6px 14px; align-items: center }
+.bars { display: grid; gap: 4px; min-width: 0 }
+.bar { height: 10px; border-radius: 3px; background: var(--line); position: relative }
+.bar i { position: absolute; inset: 0 auto 0 0; border-radius: 3px }
+.bar.before i { background: var(--muted) } .bar.after i { background: var(--accent) }
+.bar-legend { font: 500 12px/1.3 var(--font-data); color: var(--muted) }
+.notes { margin: 0; padding: 12px 16px 12px 34px; background: var(--surface); border: 1px dashed var(--line); border-radius: var(--radius) }
+.notes li + li { margin-top: 4px }
+footer { color: var(--muted); font-size: 12.5px; border-top: 1px solid var(--line); padding-top: 14px }
+@media (max-width: 520px) { .bar-row { grid-template-columns: 1fr } .findings li { grid-template-columns: 1fr } }
+@media (prefers-reduced-motion: no-preference) { .metric, .findings li, .pill { transition: background-color .15s ease } .findings li:hover { background: var(--bg) } }
+</style>
+
+<div class="wrap" id="app" aria-live="polite"></div>
+
+<script type="application/json" id="report-data">__SISKA_DATA__</script>
+<script>
+// Renders the report JSON (schema: templates/report/README.md). Data is inserted as text only, never as HTML.
+(function () {
+  var data;
+  try { data = JSON.parse(document.getElementById("report-data").textContent); } catch (e) { data = { title: "Report data is not valid JSON", verdict: { status: "fail", summary: String(e) } }; }
+  var app = document.getElementById("app");
+  var LABEL = { ok: "Ready", warn: "Needs attention", fail: "Blocked", info: "Info" };
+  var SEV = { critical: "fail", high: "fail", medium: "warn", low: "info", ok: "ok", info: "info" };
+  function el(tag, cls, text) { var n = document.createElement(tag); if (cls) n.className = cls; if (text != null) n.textContent = String(text); return n; }
+  function safeUrl(u) { return /^https?:\/\//i.test(u || "") ? u : null; }
+  function status(s) { return LABEL[s] ? s : "info"; }
+
+  var h = el("header");
+  h.appendChild(el("div", "eyebrow", (data.command ? data.command + " · " : "") + "siska lead developer"));
+  h.appendChild(el("h1", null, data.title || "Report"));
+  var meta = el("div", "meta");
+  [["Project", data.project], ["Branch", data.branch], ["Date", data.date]].forEach(function (m) { if (m[1]) meta.appendChild(el("span", null, m[0] + ": " + m[1])); });
+  if (data.target) {
+    var t = el("span"), url = safeUrl(data.target);
+    t.appendChild(document.createTextNode("Target: "));
+    if (url) { var a = el("a", "mono", data.target); a.href = url; a.rel = "noopener"; a.target = "_blank"; t.appendChild(a); } else t.appendChild(el("span", "mono", data.target));
+    meta.appendChild(t);
+  }
+  h.appendChild(meta);
+  app.appendChild(h);
+
+  if (data.verdict) {
+    var v = el("div", "verdict"), st = status(data.verdict.status);
+    v.appendChild(el("span", "pill s-" + st, data.verdict.label || LABEL[st]));
+    v.appendChild(el("p", null, data.verdict.summary || ""));
+    app.appendChild(v);
+  }
+
+  if (data.metrics && data.metrics.length) {
+    var ms = el("div", "metrics");
+    data.metrics.forEach(function (m) {
+      var c = el("div", "metric");
+      var lab = el("div", "label"), dot = el("span", "dot"); dot.style.background = "var(--" + status(m.status) + ")";
+      lab.appendChild(dot); lab.appendChild(document.createTextNode(m.label || "")); c.appendChild(lab);
+      var val = el("div", "value", m.value != null ? m.value : "–"); if (m.unit) val.appendChild(el("small", null, " " + m.unit)); c.appendChild(val);
+      if (m.before != null) c.appendChild(el("div", "delta", "before " + m.before + (m.unit ? " " + m.unit : "")));
+      if (m.note) c.appendChild(el("div", "delta", m.note));
+      ms.appendChild(c);
+    });
+    app.appendChild(ms);
+  }
+
+  (data.sections || []).forEach(function (s) {
+    var sec = el("section"); sec.appendChild(el("h2", null, s.title || ""));
+    if (s.type === "table") {
+      var wrap = el("div", "scroll"), tb = el("table"), thead = el("thead"), tr = el("tr");
+      (s.columns || []).forEach(function (c) { tr.appendChild(el("th", null, c)); }); thead.appendChild(tr); tb.appendChild(thead);
+      var body = el("tbody");
+      (s.rows || []).forEach(function (r) {
+        var row = el("tr");
+        r.forEach(function (cell) {
+          var td = el("td");
+          if (cell && typeof cell === "object") { td.appendChild(el("span", "pill s-" + status(SEV[cell.status] || cell.status), cell.text)); }
+          else { td.textContent = cell == null ? "" : String(cell); if (typeof cell === "number" || /^[\d.,]+\s?(ms|s|KB|MB|%)?$/.test(String(cell))) td.className = "num"; }
+          row.appendChild(td);
+        });
+        body.appendChild(row);
+      });
+      tb.appendChild(body); wrap.appendChild(tb); sec.appendChild(wrap);
+    } else if (s.type === "findings") {
+      var ul = el("ul", "findings");
+      (s.items || []).forEach(function (f) {
+        var li = el("li"), sv = SEV[f.severity] || "info";
+        li.appendChild(el("span", "pill s-" + sv, f.severity || "info"));
+        var b = el("div", "body"); b.appendChild(el("div", "title", f.title));
+        if (f.where) b.appendChild(el("div", "where mono", f.where));
+        var dl = el("dl");
+        [["Impact", f.impact], ["Fix", f.fix], ["Status", f.state]].forEach(function (p) { if (p[1]) { dl.appendChild(el("dt", null, p[0])); dl.appendChild(el("dd", null, p[1])); } });
+        if (dl.childNodes.length) b.appendChild(dl);
+        li.appendChild(b); ul.appendChild(li);
+      });
+      sec.appendChild(ul);
+    } else if (s.type === "compare") {
+      var box = el("div", "compare");
+      (s.items || []).forEach(function (it) {
+        var max = Math.max(Number(it.before) || 0, Number(it.after) || 0) || 1, row = el("div", "bar-row");
+        row.appendChild(el("div", null, it.label));
+        var bars = el("div", "bars");
+        [["before", it.before], ["after", it.after]].forEach(function (p) {
+          var bar = el("div", "bar " + p[0]), fill = el("i"); fill.style.width = ((Number(p[1]) || 0) / max * 100) + "%"; bar.appendChild(fill);
+          bar.setAttribute("role", "img"); bar.setAttribute("aria-label", p[0] + " " + p[1] + " " + (it.unit || ""));
+          bars.appendChild(bar);
+        });
+        var better = it.better === "higher" ? Number(it.after) > Number(it.before) : Number(it.after) < Number(it.before);
+        bars.appendChild(el("div", "bar-legend", it.before + " → " + it.after + " " + (it.unit || "") + (Number(it.after) === Number(it.before) ? "  (no change)" : better ? "  ✓ better" : "  ✗ worse")));
+        row.appendChild(bars); box.appendChild(row);
+      });
+      sec.appendChild(box);
+    } else {
+      var ol = el("ul", "notes"); (s.items || []).forEach(function (n) { ol.appendChild(el("li", null, n)); }); sec.appendChild(ol);
+    }
+    app.appendChild(sec);
+  });
+
+  if (data.next && data.next.length) {
+    var nx = el("section"); nx.appendChild(el("h2", null, "Next steps")); var nl = el("ul", "notes");
+    data.next.forEach(function (n) { nl.appendChild(el("li", null, n)); }); nx.appendChild(nl); app.appendChild(nx);
+  }
+  app.appendChild(el("footer", null, "Generated by siska-lead-developer" + (data.date ? " · " + data.date : "") + ". Figures come from the commands run; anything marked not verified was not measured."));
+})();
+</script>

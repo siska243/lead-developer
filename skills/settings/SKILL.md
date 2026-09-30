@@ -8,4 +8,4 @@ disable-model-invocation: true
 Arguments: `$ARGUMENTS`
 
 Run `bash ${CLAUDE_SKILL_DIR}/../../scripts/settings.sh . <arguments>` and show its output in two lines.
-Only change a setting because the user asked for it in this message. Turning the gate off: say that commits will no longer be checked until `gate on`.
+Only change a setting because the user asked for it in this message. Turning the gate off: say that tests and lint will no longer run before commits until `gate on`; the secret scan and the AI attribution check always stay on.

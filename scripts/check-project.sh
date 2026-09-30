@@ -3,8 +3,8 @@
 #
 # Usage: bash check-project.sh [PROJECT_DIR] [--run-tests] [--run-lint] [--scope front,back,mobile]
 #
-# Reports: detected stack, git state (branch, uncommitted changes), tracked
-# .env files, secrets and debug leftovers in the current diff, and the test
+# Reports: detected stack, git state (branch, uncommitted changes), secrets,
+# keys and tracked .env files (secret-scan.sh), debug leftovers in the current diff, and the test
 # and lint commands found (or declared in .siska/checks, one per line).
 # --run-tests / --run-lint run them; a failure is blocking. --scope limits them
 # to front (web UI), back (PHP, Python, server-side Node) and/or mobile (Expo,
@@ -37,9 +37,12 @@ done
 ROOT="$(sld_project_root "$ROOT_ARG")"
 BLOCKING=0
 
-block() { sld_info "BLOCK: $*"; BLOCKING=1; }
-warn() { sld_info "WARN:  $*"; }
-ok() { sld_info "OK:    $*"; }
+# Coloured status labels on a terminal only; agents and CI get the plain labels.
+C_RED="" C_YEL="" C_GRN="" C_OFF=""
+if [ -t 1 ] && [ -z "${NO_COLOR:-}" ]; then C_RED=$'\033[31m' C_YEL=$'\033[33m' C_GRN=$'\033[32m' C_OFF=$'\033[0m'; fi
+block() { sld_info "${C_RED}BLOCK:${C_OFF} $*"; BLOCKING=1; }
+warn() { sld_info "${C_YEL}WARN:${C_OFF}  $*"; }
+ok() { sld_info "${C_GRN}OK:${C_OFF}    $*"; }
 
 sld_info "## Stack"
 bash "$SCRIPT_DIR/detect-stack.sh" "$ROOT"
@@ -54,8 +57,8 @@ if sld_has_cmd git && git -C "$ROOT" rev-parse --is-inside-work-tree >/dev/null 
   esac
   git -C "$ROOT" status --short
 
-  tracked_env="$(git -C "$ROOT" ls-files | grep -E '(^|/)\.env(\.[^/]*)?$' | grep -Ev '\.(example|sample|dist|template)$' || true)"
-  if [ -n "$tracked_env" ]; then block "environment file(s) tracked by git: $(echo "$tracked_env" | tr '\n' ' ')"; else ok "no .env file tracked"; fi
+  # Secrets, keys, sensitive files and tracked .env (shared with the commit gate).
+  if ! bash "$SCRIPT_DIR/secret-scan.sh" "$ROOT"; then BLOCKING=1; fi
 
   # Added lines of the whole working diff vs HEAD (staged + unstaged), plus untracked files.
   # Without any commit yet, compare with the empty tree so staged files are scanned too.
@@ -66,10 +69,6 @@ if sld_has_cmd git && git -C "$ROOT" rev-parse --is-inside-work-tree >/dev/null 
     # -I skips binary files.
     [ -f "$ROOT/$f" ] && diff_added+=$'\n'"$(grep -I '' "$ROOT/$f" 2>/dev/null | sed 's/^/+/')"
   done < <(git -C "$ROOT" ls-files --others --exclude-standard)
-
-  secret_re='(-----BEGIN [A-Z ]*PRIVATE KEY-----|AKIA[0-9A-Z]{16}|gh[pousr]_[A-Za-z0-9]{36,}|xox[baprs]-[A-Za-z0-9-]{10,}|sk_live_[0-9A-Za-z]{16,}|(password|passwd|secret|api_key|apikey|token)[[:space:]]*[:=][[:space:]]*["'"'"'][^"'"'"'[:space:]]{8,}["'"'"'])'
-  secrets="$(printf '%s\n' "$diff_added" | grep -Ei -- "$secret_re" | cut -c1-120 || true)"
-  if [ -n "$secrets" ]; then block "possible secret(s) in changes:"; printf '%s\n' "$secrets"; else ok "no secret pattern in changes"; fi
 
   debug_re='((^|[^[:alnum:]_>:$])(dd|dump)\(|var_dump\(|print_r\(|console\.log\(|(^|[^[:alnum:]_])debugger;|breakpoint\(\)|pdb\.set_trace\(\))'
   debug="$(printf '%s\n' "$diff_added" | grep -E -- "$debug_re" | cut -c1-120 || true)"

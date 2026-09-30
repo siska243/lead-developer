@@ -14,4 +14,4 @@ Follow `${CLAUDE_SKILL_DIR}/../../references/documentation.md` and the rules of 
 - `--api`: API blocks and the OpenAPI file for the given endpoints (all if none given).
 - `--code`: code documentation (PHPDoc/JSDoc/TSDoc/docstrings) for the given path.
 
-Before writing: find the existing docs and their format. After: check every endpoint, field and status against the code, then report in two lines which files were written and what is marked "to confirm".
+Before writing: find the existing docs and their format. After: check every endpoint, field and status against the code, then deliver the visual report (`${CLAUDE_SKILL_DIR}/../../references/reports.md`): files written, endpoints documented, what is marked "to confirm"; in the terminal, two lines and the link.

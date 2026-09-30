@@ -43,8 +43,17 @@ Tools report **candidates**, not facts. Before proposing removal, verify each on
 ## Removing
 Only after the user approves the list. One logical group at a time, with the project's manager (`composer remove`, `npm uninstall`, `pnpm remove`, `yarn remove`, `bun remove`, `poetry remove`, `uv remove`, or `pip uninstall` + remove from `requirements*.txt`/`pyproject.toml`). Then: lockfile committed, tests + build run (Expo: `npx expo install --check`), app started when possible.
 
+## Staying current (regular maintenance)
+- **New project or new dependency**: the latest stable version (LTS for runtimes and frameworks), checked on the registry at that moment, never from memory, and compatible with the rest of the stack.
+- **Runtimes and frameworks on a supported version**: check end of life (`curl -s https://endoflife.date/api/<product>.json`, e.g. `php`, `nodejs`, `python`, `laravel`, `react-native`); an EOL or soon-EOL version is reported with an upgrade plan.
+- **Regular updates**: run the `audit-package --outdated` command when a ticket touches dependencies, when starting work on a project not checked for a month, and before a release. Propose:
+  - security fixes: now, smallest fixing version;
+  - patch and minor versions: grouped per ecosystem, one commit, tests and build after;
+  - major versions: one package per ticket and branch, after reading its upgrade guide.
+- Routine maintenance is a valid reason to update; it still follows the steps below. Nothing is updated without the user's approval.
+
 ## Updating – never massively without reason
-1. Identify the reason (vulnerability, bug, required feature).
+1. Identify the reason (vulnerability, bug, required feature, scheduled maintenance, end of life).
 2. Check the vulnerability (advisory, affected range, exploitable in this project?).
 3. Find the smallest fixing version (patch > minor > major).
 4. Read the changelog / breaking changes.

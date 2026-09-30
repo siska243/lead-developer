@@ -12,8 +12,12 @@ Fait travailler ton agent IA comme un **Lead Developer senior** : zéro régress
 | `/siska-lead-developer:audit-route --orders` | Audit des routes qui contiennent `orders` |
 | `/siska-lead-developer:audit-package` | Dépendances : vulnérabilités, paquets abandonnés ou non maintenus, paquets inutilisés (désinstallés après ton accord) |
 | `/siska-lead-developer:audit-package --outdated` | Idem + paquets obsolètes |
+| `/siska-lead-developer:optimize` | Optimisation du code : champs d'API que le front n'utilise pas, requêtes front inutiles, pages lourdes, code backend lent, code mort et dupliqué. Corrige après ton accord |
+| `/siska-lead-developer:optimize https://app.local/orders` | Tu donnes le lien d'une page : il la scanne, te fait un résumé et un plan, l'applique sur une branche `perf/` (les points à risque attendent ton oui), puis montre avant → après |
+| `/siska-lead-developer:optimize com.societe.app --flow .maestro/orders.yaml` | Mobile : mesure l'app sur un téléphone ou un émulateur (démarrage, images saccadées, mémoire), résumé, plan appliqué, avant → après |
+| `/siska-lead-developer:optimize front --orders` | Seulement certaines parties (`api`, `front`, `back`, `dead`, cumulables), seulement ce qui contient `orders` |
 | `/siska-lead-developer:mcp <quoi exposer>` | Ajouter / auditer un serveur MCP |
-| `/siska-lead-developer:check-code` | Contrôle avant commit : tests, linters, secrets, `.env`. Commit refusé si quelque chose échoue |
+| `/siska-lead-developer:check-code` | Contrôle avant commit : tests, linters, secrets et clés en dur, `.env`. Commit refusé si quelque chose échoue |
 | `/siska-lead-developer:check-code --front` | Idem, uniquement le front (aussi `--back`, `--mobile`, cumulables) |
 | `/siska-lead-developer:document <fonctionnalité>` | Documentation : fonctionnelle, puis technique (appels API…) · `--functional`, `--api`, `--code` |
 | `/siska-lead-developer:skills` | Skills et MCP installés · `find <besoin>` · `vet <source>` · `install <source>` (seulement après ton oui) |
@@ -44,6 +48,58 @@ Le plugin installe un hook : avant chaque `git commit` lancé par Claude, il ex�
   - les commits que tu fais dans ton propre terminal ne passent pas par le hook du plugin Claude Code.
 - Si les contrôles durent plus de 10 minutes, le hook s'arrête sans bloquer : lance alors `/siska-lead-developer:check-code` avant de committer.
 
+### Aucun secret dans le code
+
+Avant chaque commit, `scripts/secret-scan.sh` cherche dans les lignes ajoutées et les nouveaux fichiers :
+- les clés privées, les tokens AWS, GitHub, GitLab, Slack, Stripe, Google, les clés d'API de type `sk-…`, les JWT ;
+- les mots de passe dans les URL de connexion (`mysql://user:<mot-de-passe>@host`) ;
+- les variables `password`, `secret`, `api_key`, `token`… qui reçoivent une valeur écrite en dur ;
+- les fichiers de clés (`.pem`, `.key`, `.p12`, `id_rsa`…) et les `.env` suivis par git.
+
+Ce contrôle tourne **toujours**, même avec `gate off` ou `SISKA_SKIP_GATE=1` : une clé committée reste dans l'historique git. Les références à des variables d'environnement (`env("DB_PASSWORD")`, `process.env.X`, `${VAR}`) et les valeurs d'exemple (`<your-token>`) passent. Une fausse alerte vérifiée (fixture de test) se marque avec un commentaire `siska:allow-secret` sur la ligne. Une clé déjà committée est compromise : il faut la changer.
+
+### Pas de co-auteur IA
+
+Les messages de commit et les descriptions de PR décrivent le changement technique, sans ligne `Co-Authored-By:` d'un outil d'IA ni « Generated with … ». Le hook refuse ces commits (et `gh pr create/edit` dans Claude Code) ; le hook git `commit-msg` fait de même pour les autres agents. Un co-auteur humain reste accepté.
+
+## Rapports visuels
+
+Chaque résultat de commande (audits, `check-code`, `optimize`, `document`) arrive en deux formes, avec les mêmes chiffres :
+- **une page de rapport** claire, en thème clair ou sombre et lisible sur mobile : verdict, indicateurs clés, tableaux, problèmes classés par gravité, avant → après, et ce qui n'a pas pu être vérifié. Dans Claude Code, c'est un artifact privé ; avec les autres agents, un fichier `.siska/reports/<commande>-<date>.html` à ouvrir dans le navigateur ;
+- **un résumé court dans le terminal**, avec des couleurs et une animation pendant les scans longs quand c'est un vrai terminal, et **le lien du rapport sur la dernière ligne**.
+
+Les rapports ne contiennent jamais de secret, de cookie de session ni de donnée personnelle. Format des données : `templates/report/README.md`.
+
+### Pages derrière une connexion
+
+`optimize <lien>` mesure la page avec Lighthouse, l'outil standard, le même moteur que Chrome DevTools et PageSpeed Insights. Si la page demande une connexion :
+
+crée une session une fois, avec la méthode de ton choix (un **compte de test**, jamais un admin de production) :
+
+```bash
+# identifiant et mot de passe : connexion puis mesure dans le même Chrome (marche aussi avec les cookies de session)
+SISKA_SCAN_USER='qa@exemple.fr' SISKA_SCAN_PASSWORD='…' bash scripts/page-scan.sh https://app.local/orders --login-url https://app.local/login
+bash scripts/page-scan.sh https://app.local/orders --login-url https://app.local/login --ask   # saisie masquée : le mot de passe ne passe pas par l'agent
+# token : placé dans le localStorage, là où ton front le range après la connexion
+SISKA_SCAN_TOKEN='…' bash scripts/page-scan.sh https://app.local/orders --token-key auth_token
+# manuel (captcha, 2FA) : un Chrome visible s'ouvre, tu te connectes et tu LAISSES LA FENÊTRE OUVERTE
+bash scripts/page-scan.sh --login https://app.local/orders
+bash scripts/page-scan.sh --logout                                # ferme et efface la session
+```
+
+La session vit dans un profil Chrome privé, hors du projet (`~/.cache/siska/chrome-profile`). Les cookies de session, sans date d'expiration, meurent quand Chrome se ferme : c'est pour ça que la connexion et la mesure se font dans le même Chrome. Le token et le mot de passe passent uniquement par des variables d'environnement : ils ne sont jamais affichés, écrits dans un fichier ou mis dans le rapport. Si tu donnes un token ou un mot de passe à l'agent dans le chat, il reste dans l'historique de la conversation : préfère `--ask`, ou un token de test à durée courte. Si un MCP navigateur (Playwright MCP, Chrome DevTools MCP) est installé, il sert en plus à mesurer les requêtes faites pendant les actions : filtres, tri, pagination. Sur un serveur de dev (Vite, `next dev`), un avertissement rappelle que les chiffres ne sont pas ceux de la production.
+
+### Applications mobiles
+
+La même commande marche pour React Native, Expo et Android, avec les outils standards du mobile, puisque Lighthouse ne mesure que le web :
+
+```bash
+bash scripts/mobile-scan.sh com.societe.app                                  # démarrage à froid, fluidité, mémoire, CPU, taille
+bash scripts/mobile-scan.sh com.societe.app --flow .maestro/orders.yaml     # mesure pendant un parcours Maestro (écran précis, connexion)
+```
+
+Le script utilise `adb` et `dumpsys` sur un téléphone branché ou un émulateur, et Maestro pour rejouer un parcours. Les identifiants d'un compte de test passent en variables Maestro (`-e`), jamais dans le fichier du parcours. Il prévient quand les chiffres ne sont qu'indicatifs : build debug ou émulateur. Pour des chiffres réels, utilise un build release sur un téléphone de milieu de gamme. iOS se mesure avec Xcode Instruments. Le poids des réponses de l'API est vérifié dans le code et le backend, comme pour le web.
+
 ## Skills et MCP
 
 Siska utilise d'abord les skills et MCP déjà installés, et ne charge que ceux utiles à la tâche. S'il en manque un :
@@ -65,7 +121,15 @@ Chaque nouvelle fonctionnalité, ou fonctionnalité modifiée, est documentée d
 1. **Fonctionnel** : à quoi elle sert, pour qui, le parcours, les règles, les écrans, les erreurs.
 2. **Technique** : les appels API (route, authentification, paramètres, réponses, erreurs, exemples), les données, les jobs, les permissions.
 
+Le code aussi est documenté : chaque classe, fonction publique, endpoint, job ou script nouveau ou modifié reçoit son commentaire de documentation (rôle, paramètres, retour, erreurs, effets de bord), et les commentaires expliquent le *pourquoi*. Le README reste juste : installer, configurer (noms des variables d'environnement), lancer, tester, déployer.
+
 Tout est vérifié dans le code, rien n'est inventé, et le texte est écrit comme par un humain. La fiche va dans le dossier de documentation du projet, ou dans `docs/features/` s'il n'en a pas. Le fichier OpenAPI est mis à jour s'il existe.
+
+## Technologies et dépendances à jour
+
+- Un nouveau projet ou une nouvelle dépendance part sur la dernière version stable (LTS pour les runtimes et frameworks), vérifiée sur le registre au moment du choix.
+- Les versions en fin de vie (PHP, Node, Python, Laravel, React Native…) sont signalées avec un plan de migration.
+- `/siska-lead-developer:audit-package --outdated` est proposé quand un ticket touche aux dépendances, sur un projet non vérifié depuis un mois, et avant une mise en production : correctifs de sécurité tout de suite, versions patch et minor groupées, versions majeures une par une. Rien n'est mis à jour sans ton accord.
 
 ## Suivi des demandes
 
@@ -128,10 +192,10 @@ claude plugin marketplace remove siska      # retire aussi le catalogue
 ```bash
 git clone https://github.com/siska243/lead-developer && cd lead-developer
 bash scripts/install.sh                               # dans ~/.agents/skills
-bash scripts/install-git-hook.sh /chemin/du/projet    # bloque les commits si les contrôles échouent
+bash scripts/install-git-hook.sh /chemin/du/projet    # hooks pre-commit + commit-msg : contrôles, secrets, co-auteur IA
 ```
 
-- Le skill principal et ses commandes sont installés sous les noms `siska-audit-route`, `siska-check-code`, `siska-document`, `siska-skills`, `siska-tickets`, `siska-mcp` et `siska-help`.
+- Le skill principal et ses commandes sont installés sous les noms `siska-audit-route`, `siska-audit-package`, `siska-check-code`, `siska-document`, `siska-optimize`, `siska-settings`, `siska-skills`, `siska-tickets`, `siska-mcp` et `siska-help`.
 - Pour appeler une commande :
   - Codex : `$siska-check-code`, ou `/skills` ;
   - Copilot : choisis ou cite `siska-check-code`.
@@ -150,6 +214,11 @@ Options : `--link` (lien symbolique), `--force` (remplace en gardant une sauvega
 bash scripts/detect-stack.sh <projet>                  # stack réelle
 bash scripts/security-audit.sh <projet> [--outdated]   # audit des dépendances
 bash scripts/check-project.sh <projet> [--run-tests]   # contrôle avant livraison
+bash scripts/secret-scan.sh <projet>                   # secrets et clés en dur dans les changements
+bash scripts/page-scan.sh <url> [--report data.json]   # poids, requêtes, appels API et doublons d'une page (Lighthouse)
+bash scripts/page-scan.sh --login <url>                # se connecter une fois pour scanner les pages protégées
+bash scripts/mobile-scan.sh <package> [--flow f.yaml]  # performance d'une app Android (adb, Maestro)
+bash scripts/report.sh data.json --out r.html --standalone   # rapport visuel
 ```
 
 ## Développer le skill
