@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Scan one page by its URL and summarize what makes it heavy or slow.
 #
-# Usage: bash page-scan.sh <URL> [--allow-download] [--desktop] [--save-json FILE] [--report FILE]
+# Usage: bash page-scan.sh <URL> [--allow-download] [--desktop] [--save-json FILE] [--report FILE] [--metrics FILE]
 #        bash page-scan.sh <URL> --login-url <login page URL>   (with SISKA_SCAN_USER / SISKA_SCAN_PASSWORD)
 #        bash page-scan.sh --login <URL> [--token-key KEY] [--ask]
 #        bash page-scan.sh --logout
@@ -12,7 +12,8 @@
 # resources, API calls (fetch/XHR), requests made more than once, and the
 # Lighthouse opportunities with their estimated savings. --save-json keeps the
 # raw report (before/after comparison); --report writes the visual report data
-# (templates/report/README.md) for scripts/report.sh.
+# (templates/report/README.md) for scripts/report.sh; --metrics writes the flat numbers
+# (score, lcp_ms, tbt_ms, cls, transferred_kb, api_kb, requests, duplicate_requests…) for perf-budget.sh.
 # Lighthouse: the installed `lighthouse` binary, else `npx lighthouse` only with
 # --allow-download (the agent asks the user first).
 # Pages behind a login (dedicated Chrome profile $SISKA_CHROME_PROFILE, default
@@ -39,12 +40,13 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck source=lib.sh
 . "$SCRIPT_DIR/lib.sh"
 
-URL="" REPORT="" SAVE="" REPORT_DATA="" TOKEN_KEY="" LOGIN_URL="" ALLOW_DOWNLOAD=0 LOGIN=0 LOGOUT=0 ASK=0 PRESET="" NEXT=""
+URL="" REPORT="" SAVE="" REPORT_DATA="" METRICS="" TOKEN_KEY="" LOGIN_URL="" ALLOW_DOWNLOAD=0 LOGIN=0 LOGOUT=0 ASK=0 PRESET="" NEXT=""
 for arg in "$@"; do
   case "$NEXT" in
     json) REPORT="$arg"; NEXT=""; continue ;;
     save) SAVE="$arg"; NEXT=""; continue ;;
     report) REPORT_DATA="$arg"; NEXT=""; continue ;;
+    metrics) METRICS="$arg"; NEXT=""; continue ;;
     key) TOKEN_KEY="$arg"; NEXT=""; continue ;;
     loginurl) LOGIN_URL="$arg"; NEXT=""; continue ;;
   esac
@@ -53,6 +55,7 @@ for arg in "$@"; do
     --from-json) NEXT=json ;;
     --save-json) NEXT=save ;;
     --report) NEXT=report ;;
+    --metrics) NEXT=metrics ;;
     --allow-download) ALLOW_DOWNLOAD=1 ;;
     --login) LOGIN=1 ;;
     --logout) LOGOUT=1 ;;
@@ -64,7 +67,7 @@ for arg in "$@"; do
     *) URL="$arg" ;;
   esac
 done
-[ -z "$NEXT" ] || sld_die "--from-json, --save-json, --report and --token-key need a value"
+[ -z "$NEXT" ] || sld_die "--from-json, --save-json, --report, --metrics and --token-key need a value"
 sld_has_cmd node || sld_die "node is required to read the Lighthouse report"
 PROFILE="${SISKA_CHROME_PROFILE:-${SLD_HOME:-$HOME}/.cache/siska/chrome-profile}"
 
@@ -205,7 +208,7 @@ fi
 [ -f "$REPORT" ] || sld_die "report not found: $REPORT"
 [ -z "$SAVE" ] || cp "$REPORT" "$SAVE"
 
-node - "$REPORT" "$REPORT_DATA" <<'EOF'
+node - "$REPORT" "$REPORT_DATA" "$METRICS" <<'EOF'
 const r = JSON.parse(require("fs").readFileSync(process.argv[2], "utf8"));
 const warns = [];
 const origLog = console.log;
@@ -243,7 +246,8 @@ console.log(`\n## API calls (fetch/XHR): ${api.length}`);
 for (const i of api) console.log(`- ${i.statusCode || "-"}  ${kb(i.transferSize)}  ${i.url.slice(0, 160)}`);
 
 const seen = {};
-for (const i of items) seen[i.url] = (seen[i.url] || 0) + 1;
+// CORS preflights (OPTIONS) share the URL of their request: not duplicates made by the app.
+for (const i of items) if (i.resourceType !== "Preflight") seen[i.url] = (seen[i.url] || 0) + 1;
 const dup = Object.entries(seen).filter(([, n]) => n > 1);
 console.log(`\n## Requested more than once: ${dup.length}`);
 for (const [u, n] of dup) console.log(`- ${n}x  ${u.slice(0, 160)}`);
@@ -298,5 +302,17 @@ if (process.argv[3]) {
   };
   if (warns.length) data.sections.push({ type: "notes", title: "Warnings", items: warns });
   require("fs").writeFileSync(process.argv[3], JSON.stringify(data, null, 2));
+}
+if (process.argv[4]) {
+  const num = (id) => (a[id] && typeof a[id].numericValue === "number" ? a[id].numericValue : null);
+  const round = (v, d = 0) => (v == null ? null : Math.round(v * 10 ** d) / 10 ** d);
+  const apiBytes = api.reduce((sum, i) => sum + (i.transferSize || 0), 0);
+  require("fs").writeFileSync(process.argv[4], JSON.stringify({
+    kind: "web", target: r.requestedUrl || r.finalDisplayedUrl, measured_at: r.fetchTime || new Date().toISOString(),
+    score: score == null ? null : Math.round(score * 100), lcp_ms: round(num("largest-contentful-paint")), fcp_ms: round(num("first-contentful-paint")),
+    tbt_ms: round(num("total-blocking-time")), cls: round(num("cumulative-layout-shift"), 3), transferred_kb: Math.round(total / 1024),
+    api_kb: Math.round(apiBytes / 1024), requests: items.length, api_calls: api.length, duplicate_requests: dup.length,
+    dev_server: warns.some((w) => /development server/.test(w)),
+  }, null, 2));
 }
 EOF

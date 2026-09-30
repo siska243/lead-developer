@@ -2,6 +2,13 @@
 
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), versions: [SemVer](https://semver.org/).
 
+## [1.11.0] - 2026-09-30
+### Added
+- Performance budgets: `scripts/perf-budget.sh` (`run` measures every page and app of `.siska/perf-budget.json`, `check` compares a measure made elsewhere) fails when a metric passes its budget or drifts from its baseline (`.siska/perf/<name>.json`) by more than `tolerance_pct`; `--update-baseline` records a passing measure; visual report data. `check-code --perf`; `optimize` proposes a budget or a tighter one after an optimization; optional CI step.
+- `page-scan.sh --metrics` and `mobile-scan.sh --metrics`: flat numbers for budgets (web: score, LCP, FCP, TBT, CLS, transferred, API weight, requests, duplicates; mobile: cold start, janky frames, frame p90, memory, CPU, size).
+### Fixed
+- `page-scan.sh` no longer counts CORS preflights as duplicate requests.
+
 ## [1.10.0] - 2026-09-30
 ### Added
 - `scripts/secret-scan.sh`: blocks hardcoded secrets before every commit – private keys, AWS/GitHub/GitLab/Slack/Stripe/Google tokens, `sk-…` API keys, JWTs, passwords in connection URLs, `password`/`secret`/`api_key`/`token` literals, key and keystore files, tracked `.env`. Env references and placeholders pass; `siska:allow-secret` marks a reviewed false positive. Leaks are reported with their file.

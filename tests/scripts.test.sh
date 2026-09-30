@@ -326,6 +326,38 @@ else
   echo "skip page-scan --login (needs Chrome, Node 22+ and python3)"
 fi
 
+# --- perf-budget: budgets, baseline and drift on measured metrics ---
+if command -v node >/dev/null 2>&1; then
+  PB="$TMP/perf"; mkdir -p "$PB/.siska"
+  echo '{"tolerance_pct":10,"pages":{"orders":{"url":"http://localhost:4173/orders","budget":{"api_kb":800,"lcp_ms":2500,"score":80}}},"apps":{"android":{"package":"com.example.app","budget":{"cold_start_ms":1500}}}}' >"$PB/.siska/perf-budget.json"
+  echo '{"kind":"web","target":"http://localhost:4173/orders","score":90,"lcp_ms":2100,"api_kb":600,"requests":40}' >"$TMP/m-ok.json"
+  echo '{"kind":"web","target":"http://localhost:4173/orders","score":90,"lcp_ms":2100,"api_kb":950,"requests":40}' >"$TMP/m-heavy.json"
+  echo '{"kind":"web","target":"http://localhost:4173/orders","score":70,"lcp_ms":2100,"api_kb":600,"requests":40}' >"$TMP/m-score.json"
+  echo '{"kind":"web","target":"http://localhost:4173/orders","score":90,"lcp_ms":2100,"api_kb":700,"requests":40}' >"$TMP/m-drift.json"
+  out="$(bash "$REPO/scripts/perf-budget.sh" "$PB" check orders "$TMP/m-ok.json" 2>&1)" && s=0 || s=$?
+  assert_status "within budget passes" 0 "$s"
+  assert_contains "no baseline is reported" "$out" "no baseline yet"
+  out="$(bash "$REPO/scripts/perf-budget.sh" "$PB" check orders "$TMP/m-heavy.json" 2>&1)" && s=0 || s=$?
+  assert_status "over budget fails" 1 "$s"
+  assert_contains "over budget names the metric" "$out" "over budget 800"
+  bash "$REPO/scripts/perf-budget.sh" "$PB" check orders "$TMP/m-score.json" >/dev/null 2>&1 && s=0 || s=$?
+  assert_status "score under its budget fails" 1 "$s"
+  bash "$REPO/scripts/perf-budget.sh" "$PB" check orders "$TMP/m-heavy.json" --update-baseline >/dev/null 2>&1 || true
+  check "failing measure never becomes the baseline" test ! -e "$PB/.siska/perf/orders.json"
+  bash "$REPO/scripts/perf-budget.sh" "$PB" check orders "$TMP/m-ok.json" --update-baseline >/dev/null 2>&1
+  check "passing measure recorded as baseline" grep -q '"api_kb": 600' "$PB/.siska/perf/orders.json"
+  out="$(bash "$REPO/scripts/perf-budget.sh" "$PB" check orders "$TMP/m-drift.json" --report "$TMP/pb.json" 2>&1)" && s=0 || s=$?
+  assert_status "drift over tolerance fails even under budget" 1 "$s"
+  assert_contains "drift reported against the baseline" "$out" "+17% vs baseline 600"
+  check "budget report data written" grep -q '"command": "perf-budget"' "$TMP/pb.json"
+  bash "$REPO/scripts/perf-budget.sh" "$PB" check nope "$TMP/m-ok.json" >/dev/null 2>&1 && s=0 || s=$?
+  assert_status "unknown entry is a usage error" 2 "$s"
+  bash "$REPO/scripts/perf-budget.sh" "$TMP" check orders "$TMP/m-ok.json" >/dev/null 2>&1 && s=0 || s=$?
+  assert_status "missing budget file is a usage error" 2 "$s"
+  bash "$REPO/scripts/page-scan.sh" --from-json "$TMP/lh.json" --metrics "$TMP/lh-metrics.json" >/dev/null
+  check "page-scan writes flat metrics" grep -q '"api_kb": 600' "$TMP/lh-metrics.json"
+fi
+
 # --- mobile-scan: argument checks (the device measure itself needs a booted Android device) ---
 bash "$REPO/scripts/mobile-scan.sh" "not a package" >/dev/null 2>&1 && s=0 || s=$?
 assert_status "mobile-scan rejects an invalid package name" 2 "$s"

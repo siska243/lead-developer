@@ -1,13 +1,14 @@
 ---
 name: check-code
-description: Pre-commit check - tests, linters, hardcoded secrets and keys, tracked .env, debug leftovers; secret scan of the whole history (--history) and CI setup. Blocks the commit when anything fails.
-argument-hint: "[--front] [--back] [--mobile] [--history] [path]"
+description: Pre-commit check - tests, linters, hardcoded secrets and keys, tracked .env, debug leftovers; secret scan of the whole history (--history), performance budgets (--perf) and CI setup. Blocks the commit when anything fails.
+argument-hint: "[--front] [--back] [--mobile] [--history] [--perf] [path]"
 disable-model-invocation: true
 ---
 
 Arguments: `$ARGUMENTS`
 
 0. `--history` → run only `bash ${CLAUDE_SKILL_DIR}/../../scripts/secret-scan.sh <path or .> --history` and report each finding (commit, file:line, masked value): the value must be rotated even if deleted since; rewriting history is a separate high-risk step (impact, rollback, the team's agreement). Reviewed false positives go in `.siska/secrets-allow` with the reason.
+0b. `--perf` → `bash ${CLAUDE_SKILL_DIR}/../../scripts/perf-budget.sh <path or .> run --report <tmp>/report.json` (the app must be running; for a dev server the figures are not comparable with a production baseline: say so). Over budget or regression → list each metric (now, budget, baseline) and the likely cause from the diff; never raise a budget to make it pass unless the user decides so.
 1. Scope: `--front`, `--back`, `--mobile` (combinable) → `--scope front,back,…`; none → everything.
    Run `bash ${CLAUDE_SKILL_DIR}/../../scripts/check-project.sh <path or .> --run-tests --run-lint [--scope …]`.
 2. Exit code 1 (`BLOCK` lines) → **commit refused**. List each problem (`file:line` when known) and fix it if it is in the scope of the current ticket; otherwise ask. Re-run until it passes.

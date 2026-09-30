@@ -95,6 +95,25 @@ bash scripts/page-scan.sh --logout                                # ferme et eff
 
 La session vit dans un profil Chrome privé, hors du projet (`~/.cache/siska/chrome-profile`). Les cookies de session, sans date d'expiration, meurent quand Chrome se ferme : c'est pour ça que la connexion et la mesure se font dans le même Chrome. Le token et le mot de passe passent uniquement par des variables d'environnement : ils ne sont jamais affichés, écrits dans un fichier ou mis dans le rapport. Si tu donnes un token ou un mot de passe à l'agent dans le chat, il reste dans l'historique de la conversation : préfère `--ask`, ou un token de test à durée courte. Si un MCP navigateur (Playwright MCP, Chrome DevTools MCP) est installé, il sert en plus à mesurer les requêtes faites pendant les actions : filtres, tri, pagination. Sur un serveur de dev (Vite, `next dev`), un avertissement rappelle que les chiffres ne sont pas ceux de la production.
 
+### Budgets de performance
+
+Pour que tes pages ne redeviennent pas lourdes petit à petit :
+
+```json
+// .siska/perf-budget.json (commité)
+{ "tolerance_pct": 10,
+  "pages": { "dossiers": { "url": "http://localhost:4173/order-v2", "desktop": true,
+             "budget": { "api_kb": 800, "transferred_kb": 1500, "lcp_ms": 2500, "duplicate_requests": 0 } } },
+  "apps":  { "android": { "package": "com.societe.app", "flow": ".maestro/dossiers.yaml",
+             "budget": { "cold_start_ms": 1500, "janky_pct": 5 } } } }
+```
+
+- `bash scripts/perf-budget.sh . run`, ou `/siska-lead-developer:check-code --perf`, mesure chaque page et chaque app, et **échoue** si une limite est dépassée.
+- Il échoue aussi si une mesure se dégrade de plus de 10 % par rapport à la **référence** (`.siska/perf/<nom>.json`, la dernière mesure acceptée), même sous la limite.
+- Après une optimisation, `optimize` propose de resserrer le budget et d'enregistrer la nouvelle référence (`--update-baseline`), avec ton accord.
+- En CI : après le build et le démarrage de l'app, l'étape `perf-budget.sh . run` bloque la PR qui alourdit une page.
+- Mesure toujours dans les mêmes conditions : build de production ou staging pour le web (jamais le serveur de dev), build release sur le même téléphone pour le mobile.
+
 ### Applications mobiles
 
 La même commande marche pour React Native, Expo et Android, avec les outils standards du mobile, puisque Lighthouse ne mesure que le web :
@@ -224,6 +243,7 @@ bash scripts/secret-scan.sh <projet>                   # secrets et clés en dur
 bash scripts/page-scan.sh <url> [--report data.json]   # poids, requêtes, appels API et doublons d'une page (Lighthouse)
 bash scripts/page-scan.sh --login <url>                # se connecter une fois pour scanner les pages protégées
 bash scripts/mobile-scan.sh <package> [--flow f.yaml]  # performance d'une app Android (adb, Maestro)
+bash scripts/perf-budget.sh . run [--update-baseline]  # budgets de performance des pages et apps
 bash scripts/report.sh data.json --out r.html --standalone   # rapport visuel
 ```
 

@@ -20,6 +20,7 @@ Reply with exactly this table, nothing else:
 | `/siska-lead-developer:mcp <what to expose>` | Add / extend / audit an MCP server in the app |
 | `/siska-lead-developer:check-code` | Pre-commit check: tests, linters, secrets, keys, `.env`. Commit refused if anything fails (also enforced automatically on every `git commit`; secrets and AI co-author trailers are always checked) |
 | `/siska-lead-developer:check-code --history` | Secret scan of the whole git history (every commit, values masked): what must be rotated |
+| `/siska-lead-developer:check-code --perf` | Performance budgets: each page and app of `.siska/perf-budget.json` measured, blocked if heavier or slower than allowed or than its baseline |
 | `/siska-lead-developer:check-code --front` | Same, front only (also `--back`, `--mobile`, combinable) |
 | `/siska-lead-developer:document <feature>` | Feature documentation: functional, then technical (API calls…) · `--functional`, `--api`, `--code` |
 | `/siska-lead-developer:skills` | Installed skills and MCP · `find <need>` · `vet <source>` · `install <source>` (only after your yes) |
