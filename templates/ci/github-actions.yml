@@ -10,7 +10,7 @@ on:
 permissions:
   contents: read
 env:
-  SISKA_REF: v1.12.0
+  SISKA_REF: v1.13.0
 jobs:
   secrets:
     runs-on: ubuntu-latest

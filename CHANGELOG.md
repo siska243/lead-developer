@@ -2,6 +2,10 @@
 
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), versions: [SemVer](https://semver.org/).
 
+## [1.13.0] - 2026-09-30
+### Added
+- Interactive data model explorer: `data-model.sh --html` (file to open) and `--artifact` (page to share), from `templates/data-model/explorer.html` (Cytoscape.js, pinned). Zoom, pan, rotate, fit, search a table or a column, table sheet (columns, type, null, default, keys, indexes, relations both ways, clickable), focus on neighbours (1 or 2 levels, or only them), layouts, draggable tables, deep link `#table`, colour per domain, foreign keys without index dashed, "Issues only" filter, keyboard shortcuts, light/dark, phone width. Checked on a 229-table PostgreSQL schema (layout in about 2 s).
+
 ## [1.12.0] - 2026-09-30
 ### Added
 - `/siska-lead-developer:api-docs` and `scripts/api-docs.sh`: from the project's OpenAPI 3 file, an interactive reference with a request client (Scalar, pinned version), a Postman v2.1 collection (Postman, Insomnia, Bruno; `{{baseUrl}}`, `{{token}}`, one folder per tag, bodies from examples or schemas), `api-structures.md` (per endpoint: parameters, request and response fields with type, required, default, allowed values, format, limits, example; `$ref` and `allOf` resolved), and a shareable read-only page. Flags 2xx responses without schema. Generator per stack in `references/documentation.md` (Scramble, FastAPI, NestJS, zod-to-openapi, drf-spectacular, springdoc, swag…).
