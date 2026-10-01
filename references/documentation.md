@@ -6,7 +6,7 @@
 - **Nothing invented**: every route, field, rule, role, screen and message comes from the code. Not verifiable → write "to confirm" and ask.
 - **Reuse what exists**: the project's docs folder, format and tools (docs site, OpenAPI file, Swagger UI, wiki). Never a second documentation system.
 - **Human writing**: plain, specific, short sentences; the reader's vocabulary; no filler, no promotional or AI-sounding wording. Apply a humanizer skill/tool when available.
-- **Same language** as the existing docs (otherwise the user's language).
+- **Same language** as the existing docs; none yet → the developer's language (`language` setting, else the language of their messages). Visual reports set `"lang"` to it so their labels follow.
 - Changed feature → update its page; removed feature → remove or mark its page.
 
 ## Feature page

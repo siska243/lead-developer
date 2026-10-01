@@ -26,6 +26,7 @@ Makes your AI coding agent work like a **senior Lead Developer**: zero regressio
 | `/siska-lead-developer:document <feature>` | Documentation: functional, then technical (API calls…) · `--functional`, `--api`, `--code` |
 | `/siska-lead-developer:skills` | Installed skills and MCP servers · `find <need>` · `vet <source>` · `install <source>` (only after your yes) |
 | `/siska-lead-developer:settings gate off` | Turns the pre-commit check off / on (`gate on`); `ledger off` for request tracking; `--global` for every project |
+| `/siska-lead-developer:settings language fr` | Language the agent answers you in and writes new project docs in (`auto`, the default, follows the language of your messages); code and commit messages stay in English |
 | `/siska-lead-developer:settings micro on` | Micro-task mode: every task split into 2 to 4 short micro-tasks, announced, verified and summarized one by one; sub-agent work is validated before integration · `micro off` to stop |
 | `/siska-lead-developer:tickets` | Open requests (T1, T2…) with status and priority · `--all` for every request |
 | `/siska-lead-developer:tickets t2 done` | Change a ticket: `done`, `todo`, `progress`, `cancel`, `info`, `P1`–`P3`, or add an instruction |
@@ -147,6 +148,16 @@ When it is on:
 - a trivial fix stays a single step.
 
 Off by default. In Claude Code, the reminder is injected on every message. Other agents read the `micro-tasks` setting in `.siska/settings`, which `bash scripts/settings.sh . micro on` also writes. Full rules: `references/microtasks.md`.
+
+## Your language
+
+This repository is documented in English, but the agent works in **your** language:
+- it answers in the language of your messages, or in the one you set: `/siska-lead-developer:settings language fr` (`--global` for every project, `language auto` to go back to the default);
+- docs it writes in a project follow the language the project's docs already use; when there are none yet, your language;
+- visual reports are written in your language, and their interface words follow it (English, French, Spanish, German and Portuguese; others fall back to English);
+- code, identifiers and commit messages stay in English, unless the project's own convention says otherwise.
+
+In Claude Code, a set language is reminded on every message. Other agents read `language` in `.siska/settings`.
 
 ## Skills and MCP
 

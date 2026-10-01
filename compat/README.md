@@ -20,6 +20,7 @@ Agent-specific details live here.
 | Commit gate: tests, lint, secret scan, AI attribution | plugin hook | git hooks `pre-commit` + `commit-msg` (`install-git-hook.sh`) |
 | Visual reports, API docs page, data model explorer | shared rich page (artifact) + files | HTML files to open (`report.sh --standalone`, `docs/`) |
 | Request ledger (T1, T2…) enforced on every message | yes (session hooks) | rule followed by the agent, not enforced |
+| The developer's language (`settings language fr`) | reminder injected on every message | the agent reads `language` in `.siska/settings` |
 | Micro-task mode (`settings micro on`) | reminder injected on every message | the agent reads `micro-tasks` in `.siska/settings` (rule in `SKILL.md`) |
 | Update | `claude plugin marketplace update siska` + `claude plugin update siska-lead-developer@siska` | `git pull` + `bash scripts/install.sh --force` (commands are regenerated) |
 | Disable / enable | `claude plugin disable|enable siska-lead-developer@siska` | the agent's own skill settings if any, else `install.sh --uninstall` / reinstall |
