@@ -1,396 +1,394 @@
 # Siska Lead Developer
 
-Fait travailler ton agent IA comme un **Lead Developer senior** : zéro régression, sécurité, rien d'inventé, scope respecté, tests avant « terminé ».
+Makes your AI coding agent work like a **senior Lead Developer**: zero regression, security first, nothing invented, scope respected, tests before "done".
 
-## Commandes
+## Commands
 
-| Commande | Rôle |
-|----------|------|
-| `/siska-lead-developer:help` | Liste toutes les commandes |
-| `/siska-lead-developer:siska-lead-developer <tâche>` | N'importe quelle tâche de dev (ticket, bug, TMA, review, nouveau projet, UI). Se déclenche aussi tout seul. |
-| `/siska-lead-developer:audit-route` | Audit sécurité de toutes les routes API |
-| `/siska-lead-developer:audit-route --orders` | Audit des routes qui contiennent `orders` |
-| `/siska-lead-developer:audit-package` | Dépendances : vulnérabilités, paquets abandonnés ou non maintenus, paquets inutilisés (désinstallés après ton accord) |
-| `/siska-lead-developer:audit-package --outdated` | Idem + paquets obsolètes |
-| `/siska-lead-developer:optimize` | Optimisation du code : champs d'API que le front n'utilise pas, requêtes front inutiles, pages lourdes, code backend lent, code mort et dupliqué. Corrige après ton accord |
-| `/siska-lead-developer:optimize https://app.local/orders` | Tu donnes le lien d'une page : il la scanne, te fait un résumé et un plan, l'applique sur une branche `perf/` (les points à risque attendent ton oui), puis montre avant → après |
-| `/siska-lead-developer:optimize com.societe.app --flow .maestro/orders.yaml` | Mobile : mesure l'app sur un téléphone ou un émulateur (démarrage, images saccadées, mémoire), résumé, plan appliqué, avant → après |
-| `/siska-lead-developer:optimize front --orders` | Seulement certaines parties (`api`, `front`, `back`, `dead`, cumulables), seulement ce qui contient `orders` |
-| `/siska-lead-developer:api-docs` | Doc d'API comme API Platform, aux couleurs de ton site : lire et envoyer des requêtes, servie par l'app ou partagée, exports (collection et environnement Postman, OpenAPI pour Insomnia, Bruno, Hoppscotch), champs envoyés et reçus avec type, obligatoire, défaut, valeurs possibles |
-| `/siska-lead-developer:data-model` | Structure de données : explorateur interactif (zoom, déplacement, rotation, recherche, focus sur une table et ses voisines) et doc avec diagramme ER ; signale les tables sans clé primaire et les clés étrangères sans index |
-| `/siska-lead-developer:mcp <quoi exposer>` | Ajouter / auditer un serveur MCP |
-| `/siska-lead-developer:check-code` | Contrôle avant commit : tests, linters, secrets et clés en dur, `.env`. Commit refusé si quelque chose échoue |
-| `/siska-lead-developer:check-code --front` | Idem, uniquement le front (aussi `--back`, `--mobile`, cumulables) |
-| `/siska-lead-developer:document <fonctionnalité>` | Documentation : fonctionnelle, puis technique (appels API…) · `--functional`, `--api`, `--code` |
-| `/siska-lead-developer:skills` | Skills et MCP installés · `find <besoin>` · `vet <source>` · `install <source>` (seulement après ton oui) |
-| `/siska-lead-developer:settings gate off` | Désactive / réactive (`gate on`) le contrôle avant commit ; `ledger off` pour le suivi ; `--global` pour tous les projets |
-| `/siska-lead-developer:settings micro on` | Mode micro-tâches : chaque tâche découpée en 2 à 4 micro-tâches courtes, annoncées, vérifiées et résumées une par une ; le travail des sous-agents est validé avant intégration · `micro off` pour arrêter |
-| `/siska-lead-developer:tickets` | Demandes en cours (T1, T2…) avec statut et priorité · `--all` pour toutes |
-| `/siska-lead-developer:tickets t2 done` | Modifier un ticket : `done`, `todo`, `progress`, `cancel`, `info`, `P1`–`P3`, ou ajouter une consigne |
+| Command | What it does |
+|---------|--------------|
+| `/siska-lead-developer:help` | Lists every command |
+| `/siska-lead-developer:siska-lead-developer <task>` | Any development task (ticket, bug, maintenance, review, new project, UI). Also triggers on its own. |
+| `/siska-lead-developer:audit-route` | Security audit of every API route |
+| `/siska-lead-developer:audit-route --orders` | Audit of the routes that contain `orders` |
+| `/siska-lead-developer:audit-package` | Dependencies: vulnerabilities, abandoned or unmaintained packages, unused packages (removed after your approval) |
+| `/siska-lead-developer:audit-package --outdated` | Same, plus outdated packages |
+| `/siska-lead-developer:optimize` | Code optimization: API fields the front end never uses, useless front-end requests, heavy pages, slow backend code, dead and duplicated code. Fixes after your approval |
+| `/siska-lead-developer:optimize https://app.local/orders` | Give a page link: it scans the page, gives you a summary and a plan, applies it on a `perf/` branch (risky items wait for your yes), then shows before → after |
+| `/siska-lead-developer:optimize com.company.app --flow .maestro/orders.yaml` | Mobile: measures the app on a phone or an emulator (cold start, janky frames, memory), summary, plan applied, before → after |
+| `/siska-lead-developer:optimize front --orders` | Only some parts (`api`, `front`, `back`, `dead`, combinable), only what matches `orders` |
+| `/siska-lead-developer:api-docs` | API docs like API Platform, in your site's colours: read and send requests, served by the app or shared, exports (Postman collection and environment, OpenAPI for Insomnia, Bruno, Hoppscotch), fields sent and returned with type, required, default, allowed values |
+| `/siska-lead-developer:data-model` | Data model: interactive explorer (zoom, pan, rotate, search, focus on a table and its neighbours) and docs with an ER diagram; flags tables without a primary key and foreign keys without an index |
+| `/siska-lead-developer:mcp <what to expose>` | Add or audit an MCP server |
+| `/siska-lead-developer:check-code` | Pre-commit check: tests, linters, hardcoded secrets and keys, `.env`. The commit is refused if anything fails |
+| `/siska-lead-developer:check-code --front` | Same, front end only (also `--back`, `--mobile`, combinable) |
+| `/siska-lead-developer:document <feature>` | Documentation: functional, then technical (API calls…) · `--functional`, `--api`, `--code` |
+| `/siska-lead-developer:skills` | Installed skills and MCP servers · `find <need>` · `vet <source>` · `install <source>` (only after your yes) |
+| `/siska-lead-developer:settings gate off` | Turns the pre-commit check off / on (`gate on`); `ledger off` for request tracking; `--global` for every project |
+| `/siska-lead-developer:settings micro on` | Micro-task mode: every task split into 2 to 4 short micro-tasks, announced, verified and summarized one by one; sub-agent work is validated before integration · `micro off` to stop |
+| `/siska-lead-developer:tickets` | Open requests (T1, T2…) with status and priority · `--all` for every request |
+| `/siska-lead-developer:tickets t2 done` | Change a ticket: `done`, `todo`, `progress`, `cancel`, `info`, `P1`–`P3`, or add an instruction |
 
-Les audits ne modifient rien : ils rendent un rapport, puis te demandent quoi corriger.
+Audits change nothing: they produce a report, then ask you what to fix.
 
-## Commit bloqué si les contrôles échouent
+## Commits blocked when checks fail
 
-Le plugin installe un hook : avant chaque `git commit` lancé par Claude, il exécute les tests, les linters et la recherche de secrets. Si l'un d'eux échoue, **le commit est bloqué** et la raison s'affiche.
+The plugin installs a hook: before every `git commit` the agent runs, it runs the tests, the linters and the secret scan. If one of them fails, **the commit is blocked** and the reason is shown.
 
-- Les commandes sont détectées automatiquement :
-  - PHP : `composer test`, `php artisan test`, Pest, PHPUnit, Pint, PHPStan ;
-  - JS/TS : les scripts `test`, `lint` et `typecheck` du `package.json` ;
-  - Python : `pytest` et `ruff`.
-- Classement automatique :
-  - **back** : PHP, Python, Node côté serveur ;
-  - **front** : React, Next.js, Vue, Vite… ;
-  - **mobile** : Expo, React Native.
-- Pour choisir exactement quoi lancer, crée `.siska/checks` à la racine du projet, avec une commande par ligne. Tu peux étiqueter une ligne : `front: npm run lint`, `back: php artisan test`.
-- Le hook avant commit contrôle toujours tout. `check-code --front` sert à contrôler une seule partie pendant que tu travailles.
-- **Désactiver le contrôle** sans désactiver le plugin (voir aussi le mode micro-tâches, plus bas) : `/siska-lead-developer:settings gate off`, puis `gate on` pour le réactiver. Le réglage vaut pour le projet (`.siska/settings`), ou pour tous tes projets avec `--global`. Tant qu'il est désactivé, chaque commit affiche un avertissement. Le suivi des demandes se désactive de la même façon : `settings ledger off`.
-- **Passer le contrôle** pour un commit précis :
-  - demande-le à l'agent (« skip le contrôle pour ce commit ») : il committe avec `SISKA_SKIP_GATE=1 git commit …` et le signale dans son rapport. Il ne le fait jamais sans ta demande ;
-  - ou lance toi-même `SISKA_SKIP_GATE=1 git commit -m "…"`. Avec le hook git (autres agents), `git commit --no-verify` marche aussi ;
-  - les commits que tu fais dans ton propre terminal ne passent pas par le hook du plugin Claude Code.
-- Si les contrôles durent plus de 10 minutes, le hook s'arrête sans bloquer : lance alors `/siska-lead-developer:check-code` avant de committer.
+- Commands are detected automatically:
+  - PHP: `composer test`, `php artisan test`, Pest, PHPUnit, Pint, PHPStan;
+  - JS/TS: the `test`, `lint` and `typecheck` scripts of `package.json`;
+  - Python: `pytest` and `ruff`.
+- Automatic grouping:
+  - **back**: PHP, Python, server-side Node;
+  - **front**: React, Next.js, Vue, Vite…;
+  - **mobile**: Expo, React Native.
+- To choose exactly what runs, create `.siska/checks` at the project root with one command per line. A line can be tagged: `front: npm run lint`, `back: php artisan test`.
+- The pre-commit hook always checks everything. `check-code --front` checks one part while you work.
+- **Turn the check off** without disabling the plugin (see also the micro-task mode below): `/siska-lead-developer:settings gate off`, then `gate on` to turn it back on. The setting applies to the project (`.siska/settings`), or to every project with `--global`. While it is off, every commit shows a warning. Request tracking is turned off the same way: `settings ledger off`.
+- **Skip the check** for one commit:
+  - ask the agent ("skip the check for this commit"): it commits with `SISKA_SKIP_GATE=1 git commit …` and says so in its report. It never does it unless you ask;
+  - or run `SISKA_SKIP_GATE=1 git commit -m "…"` yourself. With the git hook (other agents), `git commit --no-verify` also works;
+  - commits you make in your own terminal do not go through the Claude Code plugin hook.
+- If the checks take longer than 10 minutes, the hook stops without blocking: run `/siska-lead-developer:check-code` before committing.
 
-### Aucun secret dans le code
+### No secret in the code
 
-Avant chaque commit, `scripts/secret-scan.sh` cherche dans les lignes ajoutées et les nouveaux fichiers :
-- les clés privées, les tokens AWS, GitHub, GitLab, Slack, Stripe, Google, les clés d'API de type `sk-…`, les JWT ;
-- les mots de passe dans les URL de connexion (`mysql://user:<mot-de-passe>@host`) ;
-- les variables `password`, `secret`, `api_key`, `token`… qui reçoivent une valeur écrite en dur ;
-- les fichiers de clés (`.pem`, `.key`, `.p12`, `id_rsa`…) et les `.env` suivis par git.
+Before every commit, `scripts/secret-scan.sh` looks through the added lines and new files for:
+- private keys, AWS, GitHub, GitLab, Slack, Stripe and Google tokens, `sk-…` API keys, JWTs;
+- passwords in connection URLs (`mysql://user:<password>@host`);
+- `password`, `secret`, `api_key`, `token`… variables given a hardcoded value;
+- key files (`.pem`, `.key`, `.p12`, `id_rsa`…) and `.env` files tracked by git.
 
-Ce contrôle tourne **toujours**, même avec `gate off` ou `SISKA_SKIP_GATE=1` : une clé committée reste dans l'historique git. Les références à des variables d'environnement (`env("DB_PASSWORD")`, `process.env.X`, `${VAR}`) et les valeurs d'exemple (`<your-token>`) passent. Une fausse alerte vérifiée (fixture de test) se marque avec un commentaire `siska:allow-secret` sur la ligne. Une clé déjà committée est compromise : il faut la changer.
+This check **always** runs, even with `gate off` or `SISKA_SKIP_GATE=1`: a committed key stays in the git history. References to environment variables (`env("DB_PASSWORD")`, `process.env.X`, `${VAR}`) and example values (`<your-token>`) pass. A reviewed false positive (a test fixture) is marked with a `siska:allow-secret` comment on its line. A key that was already committed is compromised: rotate it.
 
-### Historique git et CI
+### Git history and CI
 
-- `bash scripts/secret-scan.sh . --history` (ou `/siska-lead-developer:check-code --history`) scanne **tous les commits de toutes les branches**. Une clé committée il y a longtemps, même supprimée depuis, reste lisible dans chaque clone : il faut la changer. Les valeurs sont masquées dans le résultat (`AKIA****`).
-- Une fausse alerte déjà dans l'historique se déclare dans `.siska/secrets-allow`, avec sa raison : `<commit> <fichier>:<ligne>`.
-- **CI** : les hooks locaux se contournent (`--no-verify`, un autre poste, une modification sur le web). `templates/ci/github-actions.yml` et `templates/ci/gitlab-ci.yml` relancent sur chaque PR le scan de secrets (commits de la PR et historique complet), puis les tests et le lint. Siska propose de les ajouter à la CI existante du projet, jamais sans ton accord. Ce dépôt a la sienne : `.github/workflows/checks.yml`.
+- `bash scripts/secret-scan.sh . --history` (or `/siska-lead-developer:check-code --history`) scans **every commit of every branch**. A key committed long ago, even deleted since, can still be read in every clone: rotate it. Values are masked in the output (`AKIA****`).
+- A false positive already in the history is declared in `.siska/secrets-allow` with its reason: `<commit> <file>:<line>`.
+- **CI**: local hooks can be bypassed (`--no-verify`, another machine, an edit on the web). `templates/ci/github-actions.yml` and `templates/ci/gitlab-ci.yml` run the secret scan on every pull request (the request's commits and the whole history), then the tests and the linters. Siska offers to add them to the project's existing CI, never without your approval. This repository has its own: `.github/workflows/checks.yml`.
 
-### Pas de co-auteur IA
+### No AI co-author
 
-Les messages de commit et les descriptions de PR décrivent le changement technique, sans ligne `Co-Authored-By:` d'un outil d'IA ni « Generated with … ». Le hook refuse ces commits (et `gh pr create/edit` dans Claude Code) ; le hook git `commit-msg` fait de même pour les autres agents. Un co-auteur humain reste accepté.
+Commit messages and pull request descriptions describe the technical change, with no AI tool `Co-Authored-By:` line and no "Generated with …". The hook refuses such commits (and `gh pr create/edit` in Claude Code); the git `commit-msg` hook does the same for other agents. A human co-author is still accepted.
 
-## Rapports visuels
+## Visual reports
 
-Chaque résultat de commande (audits, `check-code`, `optimize`, `document`) arrive en deux formes, avec les mêmes chiffres :
-- **une page de rapport** claire, en thème clair ou sombre et lisible sur mobile : verdict, indicateurs clés, tableaux, problèmes classés par gravité, avant → après, et ce qui n'a pas pu être vérifié. Dans Claude Code, c'est un artifact privé ; avec les autres agents, un fichier `.siska/reports/<commande>-<date>.html` à ouvrir dans le navigateur ;
-- **un résumé court dans le terminal**, avec des couleurs et une animation pendant les scans longs quand c'est un vrai terminal, et **le lien du rapport sur la dernière ligne**.
+Every command result (audits, `check-code`, `optimize`, `document`) comes in two forms, with the same figures:
+- **a report page**, clear, in light or dark theme and readable on a phone: verdict, key figures, tables, findings ranked by severity, before → after, and what could not be verified. In Claude Code it is a private artifact; with other agents, a `.siska/reports/<command>-<date>.html` file to open in a browser;
+- **a short summary in the terminal**, with colours and a spinner during long scans when it runs in a real terminal, and **the report link on the last line**.
 
-Les rapports ne contiennent jamais de secret, de cookie de session ni de donnée personnelle. Format des données : `templates/report/README.md`.
+Reports never contain a secret, a session cookie or personal data. Data format: `templates/report/README.md`.
 
-### Pages derrière une connexion
+### Pages behind a login
 
-`optimize <lien>` mesure la page avec Lighthouse, l'outil standard, le même moteur que Chrome DevTools et PageSpeed Insights. Si la page demande une connexion :
-
-crée une session une fois, avec la méthode de ton choix (un **compte de test**, jamais un admin de production) :
+`optimize <link>` measures the page with Lighthouse, the standard tool and the same engine as Chrome DevTools and PageSpeed Insights. If the page needs a login, create a session once, the way you prefer (a **test account**, never a production admin):
 
 ```bash
-# identifiant et mot de passe : connexion puis mesure dans le même Chrome (marche aussi avec les cookies de session)
-SISKA_SCAN_USER='qa@exemple.fr' SISKA_SCAN_PASSWORD='…' bash scripts/page-scan.sh https://app.local/orders --login-url https://app.local/login
-bash scripts/page-scan.sh https://app.local/orders --login-url https://app.local/login --ask   # saisie masquée : le mot de passe ne passe pas par l'agent
-# token : placé dans le localStorage, là où ton front le range après la connexion
+# login and password: log in, then measure in the same Chrome (works with session cookies too)
+SISKA_SCAN_USER='qa@example.com' SISKA_SCAN_PASSWORD='…' bash scripts/page-scan.sh https://app.local/orders --login-url https://app.local/login
+bash scripts/page-scan.sh https://app.local/orders --login-url https://app.local/login --ask   # hidden prompt: the password never goes through the agent
+# token: stored in localStorage, where your front end keeps it after login
 SISKA_SCAN_TOKEN='…' bash scripts/page-scan.sh https://app.local/orders --token-key auth_token
-# manuel (captcha, 2FA) : un Chrome visible s'ouvre, tu te connectes et tu LAISSES LA FENÊTRE OUVERTE
+# manual (captcha, 2FA): a visible Chrome opens, you log in and LEAVE THE WINDOW OPEN
 bash scripts/page-scan.sh --login https://app.local/orders
-bash scripts/page-scan.sh --logout                                # ferme et efface la session
+bash scripts/page-scan.sh --logout                                # closes and deletes the session
 ```
 
-La session vit dans un profil Chrome privé, hors du projet (`~/.cache/siska/chrome-profile`). Les cookies de session, sans date d'expiration, meurent quand Chrome se ferme : c'est pour ça que la connexion et la mesure se font dans le même Chrome. Le token et le mot de passe passent uniquement par des variables d'environnement : ils ne sont jamais affichés, écrits dans un fichier ou mis dans le rapport. Si tu donnes un token ou un mot de passe à l'agent dans le chat, il reste dans l'historique de la conversation : préfère `--ask`, ou un token de test à durée courte. Si un MCP navigateur (Playwright MCP, Chrome DevTools MCP) est installé, il sert en plus à mesurer les requêtes faites pendant les actions : filtres, tri, pagination. Sur un serveur de dev (Vite, `next dev`), un avertissement rappelle que les chiffres ne sont pas ceux de la production.
+The session lives in a private Chrome profile outside the project (`~/.cache/siska/chrome-profile`). Session cookies, which have no expiry date, die when Chrome closes: that is why logging in and measuring happen in the same Chrome, and why each scan copies the session of the open window into a throwaway headless Chrome. The token and the password only go through environment variables: they are never printed, written to a file or put in the report. If you give a token or a password to the agent in the chat, it stays in the conversation history: prefer `--ask`, or a short-lived test token. When a browser MCP (Playwright MCP, Chrome DevTools MCP) is installed, it also measures the requests made during user actions: filters, sorting, pagination. On a development server (Vite, `next dev`), a warning reminds you that the figures are not production figures.
 
-### Budgets de performance
+### Performance budgets
 
-Pour que tes pages ne redeviennent pas lourdes petit à petit :
+So that your pages do not get heavy again, little by little:
 
 ```json
-// .siska/perf-budget.json (commité)
+// .siska/perf-budget.json (committed)
 { "tolerance_pct": 10,
-  "pages": { "dossiers": { "url": "http://localhost:4173/order-v2", "desktop": true,
+  "pages": { "orders": { "url": "http://localhost:4173/order-v2", "desktop": true,
              "budget": { "api_kb": 800, "transferred_kb": 1500, "lcp_ms": 2500, "duplicate_requests": 0 } } },
-  "apps":  { "android": { "package": "com.societe.app", "flow": ".maestro/dossiers.yaml",
+  "apps":  { "android": { "package": "com.company.app", "flow": ".maestro/orders.yaml",
              "budget": { "cold_start_ms": 1500, "janky_pct": 5 } } } }
 ```
 
-- `bash scripts/perf-budget.sh . run`, ou `/siska-lead-developer:check-code --perf`, mesure chaque page et chaque app, et **échoue** si une limite est dépassée.
-- Il échoue aussi si une mesure se dégrade de plus de 10 % par rapport à la **référence** (`.siska/perf/<nom>.json`, la dernière mesure acceptée), même sous la limite.
-- Après une optimisation, `optimize` propose de resserrer le budget et d'enregistrer la nouvelle référence (`--update-baseline`), avec ton accord.
-- En CI : après le build et le démarrage de l'app, l'étape `perf-budget.sh . run` bloque la PR qui alourdit une page.
-- Mesure toujours dans les mêmes conditions : build de production ou staging pour le web (jamais le serveur de dev), build release sur le même téléphone pour le mobile.
+- `bash scripts/perf-budget.sh . run`, or `/siska-lead-developer:check-code --perf`, measures every page and every app, and **fails** when a limit is passed.
+- It also fails when a measure gets more than 10% worse than the **baseline** (`.siska/perf/<name>.json`, the last accepted measure), even under the limit.
+- After an optimization, `optimize` offers to tighten the budget and record the new baseline (`--update-baseline`), with your approval.
+- In CI: after the build and the app start, the `perf-budget.sh . run` step blocks the pull request that makes a page heavier.
+- Always measure in the same conditions: a production build or staging for the web (never the dev server), a release build on the same phone for mobile.
 
-### Applications mobiles
+### Mobile apps
 
-La même commande marche pour React Native, Expo et Android, avec les outils standards du mobile, puisque Lighthouse ne mesure que le web :
+The same command works for React Native, Expo and Android, with the standard mobile tools, since Lighthouse only measures the web:
 
 ```bash
-bash scripts/mobile-scan.sh com.societe.app                                  # démarrage à froid, fluidité, mémoire, CPU, taille
-bash scripts/mobile-scan.sh com.societe.app --flow .maestro/orders.yaml     # mesure pendant un parcours Maestro (écran précis, connexion)
+bash scripts/mobile-scan.sh com.company.app                                  # cold start, smoothness, memory, CPU, size
+bash scripts/mobile-scan.sh com.company.app --flow .maestro/orders.yaml     # measure during a Maestro flow (a given screen, a login)
 ```
 
-Le script utilise `adb` et `dumpsys` sur un téléphone branché ou un émulateur, et Maestro pour rejouer un parcours. Les identifiants d'un compte de test passent en variables Maestro (`-e`), jamais dans le fichier du parcours. Il prévient quand les chiffres ne sont qu'indicatifs : build debug ou émulateur. Pour des chiffres réels, utilise un build release sur un téléphone de milieu de gamme. iOS se mesure avec Xcode Instruments. Le poids des réponses de l'API est vérifié dans le code et le backend, comme pour le web.
+The script uses `adb` and `dumpsys` on a plugged-in phone or an emulator, and Maestro to replay a flow. A test account's credentials go in Maestro variables (`-e`), never in the flow file. It warns you when the figures are only indicative: debug build or emulator. For real figures, use a release build on a mid-range phone. iOS is measured with Xcode Instruments. The weight of API responses is checked in the code and the backend, as for the web.
 
-## Mode micro-tâches
+## Micro-task mode
 
-Pour éviter les oublis et les erreurs silencieuses d'une longue tâche faite d'un bloc :
+To avoid the gaps and silent errors of a long task done in one go:
 
 ```text
-/siska-lead-developer:settings micro on            # ce projet
-/siska-lead-developer:settings --global micro on   # tous tes projets
+/siska-lead-developer:settings micro on            # this project
+/siska-lead-developer:settings --global micro on   # every project
 /siska-lead-developer:settings micro off
 ```
 
-Quand il est activé :
-- chaque tâche non triviale est **découpée en 2 à 4 micro-tâches**, chacune avec un résultat vérifiable : une fonction et son test, un endpoint et sa requête de test, un composant et ses états ;
-- **avant** chaque micro-tâche, l'agent t'explique en 2 ou 3 lignes ce qu'il va faire, pourquoi, et comment il va le vérifier ;
-- **après**, il vérifie (tests, lint, relecture du diff) et te résume le résultat avec la preuve ; la suivante ne démarre jamais sur une micro-tâche cassée ;
-- une micro-tâche indépendante peut partir chez un **sous-agent**, avec un contrat précis (fichiers, critères d'acceptation). Le lead **relit tout son diff et relance les vérifications avant de l'intégrer** ; rien n'est intégré sans relecture ;
-- les micro-tâches sont suivies dans le ticket : `T12.1`, `T12.2`… ;
-- une correction triviale reste en une seule étape.
+When it is on:
+- every non-trivial task is **split into 2 to 4 micro-tasks**, each with one verifiable result: a function and its test, an endpoint and its request test, a component and its states;
+- **before** each micro-task, the agent explains in 2 or 3 lines what it will do, why, and how it will check it;
+- **after** it, the agent verifies (tests, linters, a read of the diff) and summarizes the result with the evidence; the next one never starts on a broken micro-task;
+- an independent micro-task can go to a **sub-agent**, with a precise contract (files, acceptance criteria). The lead **reads its whole diff and re-runs the checks before integrating it**; nothing is integrated unread;
+- micro-tasks are tracked in the ticket: `T12.1`, `T12.2`…;
+- a trivial fix stays a single step.
 
-Désactivé par défaut. Dans Claude Code, le rappel est injecté à chaque message. Les autres agents lisent le réglage `micro-tasks` de `.siska/settings`, que `bash scripts/settings.sh . micro on` écrit aussi. Règles complètes : `references/microtasks.md`.
+Off by default. In Claude Code, the reminder is injected on every message. Other agents read the `micro-tasks` setting in `.siska/settings`, which `bash scripts/settings.sh . micro on` also writes. Full rules: `references/microtasks.md`.
 
-## Skills et MCP
+## Skills and MCP
 
-Siska utilise d'abord les skills et MCP déjà installés, et ne charge que ceux utiles à la tâche. S'il en manque un :
-1. il le cherche, avec `npx skills find` pour les skills et le registre officiel pour les MCP ;
-2. il l'analyse sans l'exécuter (`scripts/vet-skill.sh` : scripts, hooks, accès réseau, secrets, commandes dangereuses, instructions cachées) ;
-3. il te demande ton accord : oui, non, ou plus d'infos.
+Siska uses the skills and MCP servers already installed first, and loads only the ones useful for the task. When one is missing:
+1. it searches for it, with `npx skills find` for skills and the official registry for MCP servers;
+2. it analyses it without running it (`scripts/vet-skill.sh`: scripts, hooks, network access, secrets, dangerous commands, hidden instructions);
+3. it asks for your approval: yes, no, or more information.
 
-Un refus est définitif, et Siska continue sans le skill si c'est possible. Pour les actions à risque (production, suppression, `DROP`, déploiement, DNS…), il montre l'impact et le retour arrière, puis demande confirmation, ou refuse.
+A refusal is final, and Siska carries on without the skill when it can. For risky actions (production, deletion, `DROP`, deployment, DNS…), it shows the impact and the rollback, then asks for confirmation, or refuses.
 
-Exemples :
-- « Il me manque un skill Kubernetes » : il vérifie ce qui est installé, cherche, analyse, puis te propose 1 à 3 skills à installer.
-- « Optimise mon Docker pour la prod » : il combine l'expertise Docker, sécurité et performance, dans un seul plan.
-- « Déploie cette application » : action à haut risque, il montre l'impact, le retour arrière, et attend ta confirmation.
+Examples:
+- "I need a Kubernetes skill": it checks what is installed, searches, analyses, then offers you 1 to 3 skills to install.
+- "Optimize my Docker setup for production": it combines Docker, security and performance expertise in one plan.
+- "Deploy this application": a high-risk action; it shows the impact and the rollback, and waits for your confirmation.
 
 ## Documentation
 
-Chaque nouvelle fonctionnalité, ou fonctionnalité modifiée, est documentée dans le même ticket. Sans sa documentation, le ticket n'est pas terminé.
+Every new or changed feature is documented in the same ticket. Without its documentation, the ticket is not done.
 
-1. **Fonctionnel** : à quoi elle sert, pour qui, le parcours, les règles, les écrans, les erreurs.
-2. **Technique** : les appels API (route, authentification, paramètres, réponses, erreurs, exemples), les données, les jobs, les permissions.
+1. **Functional**: what it is for, who uses it, the user journey, the rules, the screens, the errors.
+2. **Technical**: the API calls (route, authentication, parameters, responses, errors, examples), the data, the jobs, the permissions.
 
-Le code aussi est documenté : chaque classe, fonction publique, endpoint, job ou script nouveau ou modifié reçoit son commentaire de documentation (rôle, paramètres, retour, erreurs, effets de bord), et les commentaires expliquent le *pourquoi*. Le README reste juste : installer, configurer (noms des variables d'environnement), lancer, tester, déployer.
+The code is documented too: every new or changed class, public function, endpoint, job or script gets its doc comment (purpose, parameters, return value, errors, side effects), and comments explain the *why*. The README stays true: install, configure (environment variable names), run, test, deploy.
 
-Tout est vérifié dans le code, rien n'est inventé, et le texte est écrit comme par un humain. La fiche va dans le dossier de documentation du projet, ou dans `docs/features/` s'il n'en a pas. Le fichier OpenAPI est mis à jour s'il existe.
+Everything is checked against the code, nothing is invented, and the text reads as if a person wrote it. The page goes in the project's docs folder, or in `docs/features/` when there is none. The OpenAPI file is updated when it exists.
 
-## Documentation de l'API et structure de données
+## API documentation and data model
 
-### Doc d'API comme API Platform (`api-docs`)
+### API docs like API Platform (`api-docs`)
 
-**Aux couleurs de ton site** : la couleur de marque est lue dans ton front (variable CSS `--primary` ou `--brand`, `tailwind.config`, `theme-color`), avec ton logo et ta police si tu les donnes. Siska dit d'où vient la couleur ; s'il n'en trouve pas, il reste neutre. Le thème clair ou sombre suit celui de la personne qui lit.
+**In your site's colours**: the brand colour is read from your front end (CSS variable `--primary` or `--brand`, `tailwind.config`, `theme-color`), with your logo and font when you give them. Siska says where the colour came from; when it finds none, it stays neutral. Light or dark theme follows the reader's.
 
-**Exports dans la page** : collection Postman, environnement Postman (`baseUrl`, et `token` vide à remplir chez toi) et OpenAPI. Insomnia, Bruno et Hoppscotch importent ces fichiers. Dans une page partagée (artifact), les exports deviennent « Copier ».
+**Exports in the page**: Postman collection, Postman environment (`baseUrl`, and an empty `token` to fill in on your side) and OpenAPI. Insomnia, Bruno and Hoppscotch import these files. On a shared page (artifact), the exports offer the file for you to confirm, or copy it when downloads are not available.
 
-**Servie par ton app**, comme API Platform : les fichiers vont dans `public/docs/api/`, et `--spec-url /docs/api.json` fait lire la spec en direct depuis le générateur, pour qu'elle soit toujours à jour. Siska demande si la doc doit rester derrière ton authentification ou hors production : une doc d'API interne n'a rien à faire en accès public.
+**Served by your app**, like API Platform: the files go in `public/docs/api/`, and `--spec-url /docs/api.json` makes the page read the live spec from the generator, so it is always up to date. Siska asks whether the docs must stay behind your authentication or out of production: internal API docs have no place on the public internet.
 
-À partir du fichier OpenAPI du projet, trois choses :
-- **une page interactive** (`index.html`) : chaque route avec ce qu'elle accepte et ce qu'elle renvoie, un bouton **Test Request** et un client d'API pour envoyer de vraies requêtes, avec ton token saisi dans la page, jamais enregistré ;
-- **une collection Postman** (`*.postman_collection.json`), importable dans Postman, Insomnia ou Bruno : un dossier par groupe, des exemples de corps, les variables `{{baseUrl}}` et `{{token}}` ;
-- **la structure des données de l'API** (`api-structures.md`) : pour chaque route, les paramètres, les champs à envoyer et les champs renvoyés, avec le type, obligatoire ou non, la valeur par défaut, les valeurs possibles, le format, les limites et un exemple.
+From the project's OpenAPI file, three things:
+- **an interactive page** (`index.html`): every route with what it accepts and what it returns, a **Test Request** button and an API client to send real requests, with your token typed in the page and never stored;
+- **a Postman collection** (`*.postman_collection.json`), to import in Postman, Insomnia or Bruno: one folder per group, example bodies, `{{baseUrl}}` and `{{token}}` variables;
+- **the API data structures** (`api-structures.md`): for each route, the parameters, the fields to send and the fields returned, with type, required or not, default value, allowed values, format, limits and an example.
 
-Pour partager la doc, publie-la en page (artifact) : elle se lit partout, mais sans envoyer de requêtes, qu'une page partagée ne peut pas faire. Donne aussi la collection. Pour tester, ouvre `index.html` ou importe la collection.
+To share the docs, publish them as a page (artifact): it can be read anywhere, but cannot send requests, which a shared page is not allowed to do. Share the collection too. To test the API, open `index.html` or import the collection.
 
-**Adapté à ta techno** : si le projet n'a pas de fichier OpenAPI, Siska propose le générateur de ton stack, qui lit tes vraies règles de validation et tes ressources. Il l'installe seulement après ton accord :
+**Adapted to your stack**: when the project has no OpenAPI file, Siska offers your stack's generator, which reads your real validation rules and resources. It installs it only after your approval:
 
-| Stack | Générateur |
+| Stack | Generator |
 |---|---|
-| Laravel | Scramble (types, défauts, énumérations tirés des FormRequest et des API Resources) |
-| FastAPI | intégré (`/openapi.json`) |
-| Symfony | API Platform ou NelmioApiDocBundle |
+| Laravel | Scramble (types, defaults and enums read from FormRequests and API Resources) |
+| FastAPI | built in (`/openapi.json`) |
+| Symfony | API Platform or NelmioApiDocBundle |
 | NestJS | `@nestjs/swagger` |
-| Express / Fastify | `zod-to-openapi` (si tu valides avec Zod) ou `@fastify/swagger` |
+| Express / Fastify | `zod-to-openapi` (when you validate with Zod) or `@fastify/swagger` |
 | Django REST | drf-spectacular |
 | Spring Boot | springdoc-openapi |
 | Go | swag |
 
-Si ton dépôt contient déjà une collection Postman, Insomnia ou Bruno, c'est celle-là qui est mise à jour.
+When your repository already has a Postman, Insomnia or Bruno collection, that one is updated.
 
 ```bash
-bash scripts/api-docs.sh openapi.json --out docs/api --base-url http://localhost:8000/api --project ../mon-front
+bash scripts/api-docs.sh openapi.json --out docs/api --base-url http://localhost:8000/api --project ../my-front-end
 bash scripts/api-docs.sh openapi.json --out public/docs/api --spec-url /docs/api.json --brand-color '#0e7c66' --logo public/logo.svg
 ```
 
-### Structure de données (`data-model`)
+### Data model (`data-model`)
 
-Lit le **vrai schéma** de la base, en lecture seule, sans jamais lire les lignes : tables, colonnes, types, valeurs par défaut, clés, index et relations.
+Reads the **real database schema**, read-only, never the rows: tables, columns, types, default values, keys, indexes and relations.
 
-**L'explorateur interactif** (`docs/data-model.html`, aussi partageable en page) est fait pour les gros schémas : des centaines de tables.
-- Zoom à la molette ou au pincement, déplacement à la souris, rotation (⟲ ⟳), bouton pour tout cadrer.
-- Recherche d'une table ou d'une colonne, puis clic : les colonnes (type, null, défaut, clé), les index et les relations dans les deux sens, cliquables.
-- **Focus** sur une table et ses voisines, à 1 ou 2 niveaux, ou seulement elles. Plusieurs mises en page, tables déplaçables, lien direct `…/data-model.html#orders`.
-- Couleur par domaine ; les clés étrangères sans index sont en pointillés orange, et le filtre « Issues only » isole les tables à corriger.
-- Raccourcis : `/` recherche, `+` `-` zoom, `0` cadrer, `[` `]` rotation, `Esc` effacer.
+**The interactive explorer** (`docs/data-model.html`, also shareable as a page) is built for large schemas: hundreds of tables.
+- Zoom with the mouse wheel or a pinch, pan with the mouse, rotate (⟲ ⟳), a button to fit everything.
+- Search a table or a column, then click it: its columns (type, null, default, key), its indexes and its relations both ways, clickable.
+- **Focus** on a table and its neighbours, 1 or 2 levels deep, or only them. Several layouts, draggable tables, direct link `…/data-model.html#orders`.
+- One colour per domain; foreign keys without an index are dashed orange, and the "Issues only" filter isolates the tables to fix.
+- Shortcuts: `/` search, `+` `-` zoom, `0` fit, `[` `]` rotate, `Esc` clear.
 
-Il écrit aussi `docs/data-model.md` (diagramme ER Mermaid et dictionnaire complet) et un rapport visuel. Il signale les tables sans clé primaire et les **clés étrangères sans index**. PostgreSQL ne les crée pas automatiquement, et leur absence ralentit les jointures et les suppressions.
+It also writes `docs/data-model.md` (Mermaid ER diagram and the full dictionary) and a visual report. It flags tables without a primary key and **foreign keys without an index**. PostgreSQL does not create those automatically, and their absence slows joins and deletes.
 
-- Laravel 11+ : l'introspection du framework, sur la connexion configurée.
-- SQLite : `--sqlite fichier.db`.
-- Autres stacks (Prisma, Django, Doctrine, TypeORM, Rails…) : le schéma est exporté avec l'outil du projet, puis passé en `--from-json`.
-- Plus de 60 tables : un diagramme par domaine, avec `--only 'order|client'`.
+- Laravel 11+: the framework's own introspection, on the configured connection.
+- SQLite: `--sqlite file.db`.
+- Other stacks (Prisma, Django, Doctrine, TypeORM, Rails…): the schema is exported with the project's own tool, then passed with `--from-json`.
+- More than 60 tables: one static diagram per domain, with `--only 'order|client'`.
 
-Si la configuration pointe vers une base de production, Siska demande avant de s'y connecter.
+When the configuration points to a production database, Siska asks before connecting to it.
 
 ```bash
 bash scripts/data-model.sh . --html docs/data-model.html --markdown docs/data-model.md
 ```
 
-## Technologies et dépendances à jour
+## Up-to-date technologies and dependencies
 
-- Un nouveau projet ou une nouvelle dépendance part sur la dernière version stable (LTS pour les runtimes et frameworks), vérifiée sur le registre au moment du choix.
-- Les versions en fin de vie (PHP, Node, Python, Laravel, React Native…) sont signalées avec un plan de migration.
-- `/siska-lead-developer:audit-package --outdated` est proposé quand un ticket touche aux dépendances, sur un projet non vérifié depuis un mois, et avant une mise en production : correctifs de sécurité tout de suite, versions patch et minor groupées, versions majeures une par une. Rien n'est mis à jour sans ton accord.
+- A new project or a new dependency starts on the latest stable version (LTS for runtimes and frameworks), checked on the registry at the time of the choice.
+- End-of-life versions (PHP, Node, Python, Laravel, React Native…) are flagged with an upgrade plan.
+- `/siska-lead-developer:audit-package --outdated` is offered when a ticket touches dependencies, on a project not checked for a month, and before a release: security fixes right away, patch and minor versions grouped, major versions one by one. Nothing is updated without your approval.
 
-## Suivi des demandes
+## Request tracking
 
-Chaque demande reçoit un numéro (`T1`, `T2`…), une priorité (`P1` urgent, `P2` normal, `P3` secondaire) et un statut :
-⬜ à faire · 🔄 en cours · ✅ fait · ❓ besoin d'info · ❌ annulé.
+Each request gets a number (`T1`, `T2`…), a priority (`P1` urgent, `P2` normal, `P3` minor) and a status:
+⬜ to do · 🔄 in progress · ✅ done · ❓ needs information · ❌ cancelled.
 
-- Écris `t3 <consigne>` pour compléter le ticket T3, et `t2 P1` pour changer sa priorité.
-- Une nouvelle demande ne remplace pas les précédentes : elle entre dans la file.
-- Une demande déjà faite n'est pas refaite : l'agent te demande ce qu'il faut améliorer.
-- Chaque réponse se termine par le tableau des tickets.
-- Le suivi est enregistré dans `.siska/requests.md`, à la racine du projet. À toi de décider si tu le commits ou si tu l'ajoutes au `.gitignore`.
-- **Imposé par le plugin Claude Code** :
-  - à chaque message, l'agent reçoit la liste des tickets ouverts et le format à respecter ;
-  - il ne peut pas terminer sa réponse sans avoir mis à jour `.siska/requests.md`, avec au maximum 2 rappels pour éviter une boucle.
+- Write `t3 <instruction>` to add to ticket T3, and `t2 P1` to change its priority.
+- A new request does not replace the previous ones: it joins the queue.
+- A request already done is not done again: the agent asks you what to improve.
+- Every answer ends with the ticket table.
+- Tracking is stored in `.siska/requests.md`, at the project root. You decide whether to commit it or add it to `.gitignore`.
+- **Enforced by the Claude Code plugin**:
+  - on every message, the agent receives the list of open tickets and the format to follow;
+  - it cannot finish its answer without updating `.siska/requests.md`, with at most 2 reminders to avoid a loop.
 
-  Ce mécanisme n'est actif que dans un dépôt git. Codex, Copilot et les autres agents n'ont pas ces hooks : chez eux, seule la règle du skill s'applique.
+  This only works inside a git repository. Codex, Copilot and the other agents have no such hooks: for them, only the skill's rule applies.
 
-## Installer (Claude Code)
+## Install (Claude Code)
 
-Dans Claude Code :
+In Claude Code:
 
 ```text
 /plugin marketplace add siska243/lead-developer
 /plugin install siska-lead-developer@siska
 ```
 
-Ou depuis le terminal :
+Or from the terminal:
 
 ```bash
 claude plugin marketplace add siska243/lead-developer
 claude plugin install siska-lead-developer@siska
 ```
 
-Erreur `Cannot add marketplace "siska": its network source differs…` : le catalogue `siska` est déjà déclaré depuis une autre source (par exemple un clone local). Lance `/plugin marketplace remove siska`, puis recommence.
+Error `Cannot add marketplace "siska": its network source differs…`: the `siska` catalogue is already declared from another source (a local clone, for example). Run `/plugin marketplace remove siska`, then try again.
 
-Depuis un clone local, remplace `siska243/lead-developer` par le chemin du dossier. Ensuite, redémarre Claude Code (ou lance `/reload-plugins`), puis tape `/siska-lead-developer:help`.
+From a local clone, replace `siska243/lead-developer` with the folder's path. Then restart Claude Code (or run `/reload-plugins`) and type `/siska-lead-developer:help`.
 
-## Mettre à jour
+## Update
 
-Deux commandes, dans cet ordre : la première récupère le catalogue à jour depuis GitHub, la seconde installe la nouvelle version du plugin.
+Two commands, in this order: the first fetches the up-to-date catalogue from GitHub, the second installs the new version of the plugin.
 
 ```bash
 claude plugin marketplace update siska
 claude plugin update siska-lead-developer@siska
 ```
 
-Puis **redémarre Claude Code**, ou tape `/reload-plugins` dans une session ouverte. Tant que tu ne l'as pas fait, la session garde l'ancienne version, et ses hooks aussi.
+Then **restart Claude Code**, or type `/reload-plugins` in an open session. Until you do, the session keeps the old version, hooks included.
 
-Pour vérifier la version installée :
+To check the installed version:
 
 ```bash
 claude plugin list          # siska-lead-developer@siska · Version: …
 ```
 
-Dans Claude Code, tu peux aussi passer par `/plugin`, onglet **Installed**, puis `siska-lead-developer`.
+In Claude Code you can also go through `/plugin`, **Installed** tab, then `siska-lead-developer`.
 
-Avec une installation depuis un clone local : `git pull`, puis `/reload-plugins`.
+With an install from a local clone: `git pull`, then `/reload-plugins`.
 
-## Désactiver et réactiver
+## Disable and enable
 
-Désactiver garde le plugin installé : ses commandes, ses règles et ses hooks (contrôle avant commit, suivi des demandes) s'arrêtent jusqu'à la réactivation.
+Disabling keeps the plugin installed: its commands, rules and hooks (pre-commit check, request tracking) stop until you enable it again.
 
 ```bash
 claude plugin disable siska-lead-developer@siska
 claude plugin enable siska-lead-developer@siska
 ```
 
-- `--scope user|project|local` choisit où le réglage s'applique : pour toi partout, pour tout le monde sur ce projet, ou seulement ta copie de ce projet. Sans l'option, la portée de l'installation est détectée.
-- Dans Claude Code : `/plugin`, onglet **Installed**, `siska-lead-developer`, puis **Disable** ou **Enable**.
-- Redémarre ensuite, ou tape `/reload-plugins`.
+- `--scope user|project|local` chooses where the setting applies: for you everywhere, for everyone on this project, or only your copy of this project. Without it, the scope of the install is detected.
+- In Claude Code: `/plugin`, **Installed** tab, `siska-lead-developer`, then **Disable** or **Enable**.
+- Then restart, or type `/reload-plugins`.
 
-Pour couper seulement une partie, sans désactiver le plugin :
-- le contrôle avant commit : `/siska-lead-developer:settings gate off`, puis `gate on` ;
-- le suivi des demandes : `/siska-lead-developer:settings ledger off`, puis `ledger on` ;
-- `--global` applique le réglage à tous tes projets.
+To turn off only one part, without disabling the plugin:
+- the pre-commit check: `/siska-lead-developer:settings gate off`, then `gate on`;
+- request tracking: `/siska-lead-developer:settings ledger off`, then `ledger on`;
+- `--global` applies the setting to every project.
 
-Le scan de secrets et le blocage des co-auteurs IA restent actifs avec `gate off`. Seule la désactivation du plugin les arrête.
+The secret scan and the AI co-author block stay on with `gate off`. Only disabling the plugin stops them.
 
-## Désinstaller
+## Uninstall
 
-Dans Claude Code : `/plugin`, onglet **Installed**, `siska-lead-developer`, puis **Uninstall**.
+In Claude Code: `/plugin`, **Installed** tab, `siska-lead-developer`, then **Uninstall**.
 
-Ou depuis le terminal :
+Or from the terminal:
 
 ```bash
 claude plugin uninstall siska-lead-developer@siska
-claude plugin marketplace remove siska      # retire aussi le catalogue
+claude plugin marketplace remove siska      # also removes the catalogue
 ```
 
-## Codex, GitHub Copilot, OpenCode et autres agents
+## Codex, GitHub Copilot, OpenCode and other agents
 
 ```bash
 git clone https://github.com/siska243/lead-developer && cd lead-developer
-bash scripts/install.sh                               # dans ~/.agents/skills
-bash scripts/install-git-hook.sh /chemin/du/projet    # hooks pre-commit + commit-msg : contrôles, secrets, co-auteur IA
+bash scripts/install.sh                               # into ~/.agents/skills
+bash scripts/install-git-hook.sh /path/to/project     # pre-commit + commit-msg hooks: checks, secrets, AI co-author
 ```
 
-- Le skill principal et ses commandes sont installés sous les noms `siska-audit-route`, `siska-audit-package`, `siska-check-code`, `siska-document`, `siska-optimize`, `siska-settings`, `siska-skills`, `siska-tickets`, `siska-mcp` et `siska-help`.
-- Pour appeler une commande :
-  - Codex : `$siska-check-code`, ou `/skills` ;
-  - Copilot : choisis ou cite `siska-check-code`.
-- Pour un seul projet : `bash scripts/install.sh --target /chemin/du/projet/.agents/skills`.
-- Désinstaller : `bash scripts/install.sh --uninstall` et `bash scripts/install-git-hook.sh /chemin/du/projet --uninstall`.
-- Le hook git bloque tous les commits du dépôt, que ce soit un agent ou toi qui committe. Il ne remplace jamais un hook existant, ni husky ou lefthook : dans ce cas, il affiche la ligne à ajouter.
-- Détails par agent : `compat/README.md`.
+- The main skill and its commands are installed as `siska-lead-developer`, `siska-api-docs`, `siska-audit-package`, `siska-audit-route`, `siska-check-code`, `siska-data-model`, `siska-document`, `siska-help`, `siska-mcp`, `siska-optimize`, `siska-settings`, `siska-skills` and `siska-tickets`.
+- To call a command:
+  - Codex: `$siska-check-code`, or `/skills`;
+  - Copilot: select or mention `siska-check-code`.
+- For a single project: `bash scripts/install.sh --target /path/to/project/.agents/skills`.
+- The git hook blocks every commit in the repository, made by an agent or by you. It never replaces an existing hook, nor husky or lefthook: in that case, it prints the line to add.
+- Details per agent: `compat/README.md`.
 
-**Mettre à jour** (Codex, Copilot, OpenCode…) :
+**Update** (Codex, Copilot, OpenCode…):
 
 ```bash
 cd lead-developer && git pull
-bash scripts/install.sh --force        # ou --target <dossier> si tu l'avais utilisé
+bash scripts/install.sh --force        # or --target <folder> if you used it
 ```
 
-`--force` remplace l'installation et garde l'ancienne en `*.bak.<date>`. Avec `--link`, le skill principal suit `git pull`, mais les commandes sont générées : relance `install.sh --force --link` pour obtenir les nouvelles. Redémarre ensuite la session de l'agent.
+`--force` replaces the install and keeps the old one as `*.bak.<date>`. With `--link`, the main skill follows `git pull`, but the commands are generated: run `install.sh --force --link` again to get new ones. Then restart the agent's session.
 
-**Désactiver** : ces agents n'ont pas de bouton commun pour ça. Utilise le réglage de skills de ton agent s'il en a un, sinon désinstalle et réinstalle plus tard :
+**Disable**: these agents have no common switch for it. Use your agent's skill settings if it has some; otherwise uninstall, and install again later:
 
 ```bash
-bash scripts/install.sh --uninstall                            # retire le skill et ses commandes
-bash scripts/install-git-hook.sh /chemin/du/projet --uninstall  # retire le contrôle avant commit
+bash scripts/install.sh --uninstall                            # removes the skill and its commands
+bash scripts/install-git-hook.sh /path/to/project --uninstall  # removes the pre-commit check
 ```
 
-Pour couper seulement le contrôle avant commit sur un projet : `bash scripts/settings.sh /chemin/du/projet gate off`. Le scan de secrets et le blocage des co-auteurs IA restent actifs.
+To turn off only the pre-commit check on a project: `bash scripts/settings.sh /path/to/project gate off`. The secret scan and the AI co-author block stay on.
 
-**Ce qui change hors Claude Code :**
-- Les scripts marchent partout, avec n'importe quel agent ou à la main : scans, budgets, doc d'API, modèle de données, rapports.
-- Les **rapports** et les pages (doc d'API, explorateur du modèle de données) sont des **fichiers HTML** à ouvrir dans le navigateur (`.siska/reports/`, `docs/`), et non des artifacts partagés.
-- Le **contrôle avant commit** passe par le hook git : il bloque aussi les commits faits à la main.
-- Le **suivi des demandes** (T1, T2…) est une règle que l'agent suit. Seul Claude Code le rend obligatoire, grâce à ses hooks de session.
-- Les MCP navigateur (Playwright, Chrome DevTools) servent quand ton agent les a configurés.
+**What changes outside Claude Code:**
+- The scripts work everywhere, with any agent or by hand: scans, budgets, API docs, data model, reports.
+- **Reports** and pages (API docs, data model explorer) are **HTML files** to open in a browser (`.siska/reports/`, `docs/`), not shared artifacts.
+- The **pre-commit check** goes through the git hook: it also blocks commits made by hand.
+- **Request tracking** (T1, T2…) is a rule the agent follows. Only Claude Code enforces it, with its session hooks.
+- Browser MCP servers (Playwright, Chrome DevTools) are used when your agent has them configured.
 
-**Ne pas utiliser ce script pour Claude Code** : utilise le plugin. Le script refuse d'installer dans `.claude/skills` si le plugin y est déjà, pour éviter un doublon.
+**Do not use this script for Claude Code**: use the plugin. The script refuses to install into `.claude/skills` when the plugin is already there, to avoid a duplicate.
 
-Options : `--link` (lien symbolique), `--force` (remplace en gardant une sauvegarde), `--dry-run` (aperçu).
+Options: `--link` (symlink), `--force` (replace, keeping a backup), `--dry-run` (preview).
 
-## Scripts utilisables à la main
+## Scripts you can run by hand
 
 ```bash
-bash scripts/detect-stack.sh <projet>                  # stack réelle
-bash scripts/security-audit.sh <projet> [--outdated]   # audit des dépendances
-bash scripts/check-project.sh <projet> [--run-tests]   # contrôle avant livraison
-bash scripts/secret-scan.sh <projet>                   # secrets et clés en dur dans les changements
-bash scripts/page-scan.sh <url> [--report data.json]   # poids, requêtes, appels API et doublons d'une page (Lighthouse)
-bash scripts/page-scan.sh --login <url>                # se connecter une fois pour scanner les pages protégées
-bash scripts/mobile-scan.sh <package> [--flow f.yaml]  # performance d'une app Android (adb, Maestro)
-bash scripts/perf-budget.sh . run [--update-baseline]  # budgets de performance des pages et apps
-bash scripts/api-docs.sh openapi.json --out docs/api   # doc interactive, collection Postman, structures de l'API
-bash scripts/data-model.sh . --html docs/data-model.html   # explorateur interactif du schéma (+ --markdown)
-bash scripts/report.sh data.json --out r.html --standalone   # rapport visuel
+bash scripts/detect-stack.sh <project>                 # the real stack
+bash scripts/security-audit.sh <project> [--outdated]  # dependency audit
+bash scripts/check-project.sh <project> [--run-tests]  # pre-delivery check
+bash scripts/secret-scan.sh <project> [--history]      # hardcoded secrets and keys in the changes (or the whole history)
+bash scripts/page-scan.sh <url> [--report data.json]   # weight, requests, API calls and duplicates of a page (Lighthouse)
+bash scripts/page-scan.sh --login <url>                # log in once to scan pages behind a login
+bash scripts/mobile-scan.sh <package> [--flow f.yaml]  # performance of an Android app (adb, Maestro)
+bash scripts/perf-budget.sh . run [--update-baseline]  # performance budgets of pages and apps
+bash scripts/api-docs.sh openapi.json --out docs/api   # interactive docs, Postman collection, API data structures
+bash scripts/data-model.sh . --html docs/data-model.html   # interactive schema explorer (+ --markdown)
+bash scripts/report.sh data.json --out r.html --standalone   # visual report
+bash scripts/settings.sh . [gate|ledger|micro on|off]  # turn automations on or off
 ```
 
-## Développer le skill
+## Developing the skill
 
 ```bash
 bash tests/scripts.test.sh
@@ -398,12 +396,12 @@ cd templates/mcp/server && npm install && npm test
 claude plugin validate .
 ```
 
-Structure :
-- `SKILL.md` : règles principales ;
-- `references/` : détails chargés à la demande ;
-- `skills/` : les commandes `:xxx` ;
-- `scripts/` ;
-- `templates/mcp/` ;
-- `compat/` : couches spécifiques à chaque agent.
+Layout:
+- `SKILL.md`: the main rules;
+- `references/`: details loaded on demand;
+- `skills/`: the `:xxx` commands;
+- `scripts/`;
+- `templates/`: `mcp/` (MCP server), `report/` (visual reports), `api-docs/` (API docs page), `data-model/` (schema explorer), `ci/` (CI jobs);
+- `compat/`: layers specific to each agent.
 
-Voir `CONTRIBUTING.md`. Licence MIT.
+See `CONTRIBUTING.md`. MIT license.
