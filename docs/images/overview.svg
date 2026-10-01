@@ -1,0 +1,144 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 660" width="1200" height="660" role="img" aria-labelledby="t d">
+  <title id="t">How Siska Lead Developer works</title>
+  <desc id="d">A request goes through five steps: understand, plan in micro-tasks, implement, verify, deliver. A commit gate (tests, lint, secret scan, no AI co-author) and the same checks in CI guard every commit. The plugin produces visual reports, API docs with a Postman export, a data model explorer and performance budgets. It works with Claude Code, Codex, GitHub Copilot and OpenCode.</desc>
+  <style>
+    .bg { fill: #f6f8fa } .card { fill: #ffffff; stroke: #d6dde5 } .ink { fill: #17202b } .muted { fill: #5b6776 }
+    .accent { fill: #1f5f8b } .accent-soft { fill: #dcebf6 } .ok { fill: #1d7a4c } .ok-soft { fill: #e3f3ea } .warn-soft { fill: #fbf0d9 } .warn { fill: #9a6300 }
+    .line { stroke: #9aa6b4; stroke-width: 2; fill: none } .on-accent { fill: #ffffff } .gate { stroke: #1d7a4c; stroke-width: 2; fill: none; stroke-dasharray: 6 5 }
+    text { font-family: -apple-system, "Segoe UI", system-ui, Roboto, "Helvetica Neue", Arial, sans-serif }
+    .h { font-size: 15px; font-weight: 700 } .s { font-size: 12.5px } .xs { font-size: 11.5px } .step { font-size: 12px; font-weight: 700; letter-spacing: .06em }
+    .mono { font-family: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace; font-size: 12px }
+    @media (prefers-color-scheme: dark) {
+      .bg { fill: #0d1117 } .card { fill: #161b22; stroke: #30363d } .ink { fill: #e6edf3 } .muted { fill: #8b949e }
+      .accent { fill: #6fb3e0 } .accent-soft { fill: #1b3345 } .ok { fill: #5cc98f } .ok-soft { fill: #133024 } .warn-soft { fill: #33270f } .warn { fill: #e6b04f }
+      .line { stroke: #52606f } .gate { stroke: #5cc98f } .on-accent { fill: #0d1117 }
+    }
+  </style>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" class="muted"/></marker>
+  </defs>
+
+  <rect class="bg" width="1200" height="660" rx="16"/>
+
+  <!-- Request -->
+  <rect class="card" x="32" y="56" width="150" height="132" rx="10"/>
+  <text class="step accent" x="48" y="82">YOUR REQUEST</text>
+  <text class="s ink" x="48" y="108">"Add order export"</text>
+  <text class="xs muted" x="48" y="132">tracked as T12,</text>
+  <text class="xs muted" x="48" y="150">priority, status</text>
+  <text class="xs muted" x="48" y="168">in .siska/requests.md</text>
+
+  <path class="line" d="M182 122 H212" marker-end="url(#arrow)"/>
+
+  <!-- Five steps -->
+  <g>
+    <rect class="card" x="216" y="56" width="176" height="132" rx="10"/>
+    <text class="step accent" x="232" y="82">1 · UNDERSTAND</text>
+    <text class="s ink" x="232" y="108">Detect the real stack</text>
+    <text class="xs muted" x="232" y="130">read the code it touches</text>
+    <text class="xs muted" x="232" y="148">impact: what could break?</text>
+    <text class="xs muted" x="232" y="166">nothing invented</text>
+  </g>
+  <path class="line" d="M392 122 H408" marker-end="url(#arrow)"/>
+  <g>
+    <rect class="card" x="412" y="56" width="176" height="132" rx="10"/>
+    <text class="step accent" x="428" y="82">2 · PLAN</text>
+    <text class="s ink" x="428" y="108">Split into micro-tasks</text>
+    <rect class="accent-soft" x="428" y="120" width="44" height="20" rx="5"/><text class="mono accent" x="434" y="134">T12.1</text>
+    <rect class="accent-soft" x="478" y="120" width="44" height="20" rx="5"/><text class="mono accent" x="484" y="134">T12.2</text>
+    <rect class="accent-soft" x="528" y="120" width="44" height="20" rx="5"/><text class="mono accent" x="534" y="134">T12.3</text>
+    <text class="xs muted" x="428" y="164">each announced, one result</text>
+  </g>
+  <path class="line" d="M588 122 H604" marker-end="url(#arrow)"/>
+  <g>
+    <rect class="card" x="608" y="56" width="176" height="132" rx="10"/>
+    <text class="step accent" x="624" y="82">3 · IMPLEMENT</text>
+    <text class="s ink" x="624" y="108">Minimum complete code</text>
+    <text class="xs muted" x="624" y="130">project conventions,</text>
+    <text class="xs muted" x="624" y="148">sub-agents on a contract,</text>
+    <text class="xs muted" x="624" y="166">docs and doc comments</text>
+  </g>
+  <path class="line" d="M784 122 H800" marker-end="url(#arrow)"/>
+  <g>
+    <rect class="card" x="804" y="56" width="176" height="132" rx="10"/>
+    <text class="step accent" x="820" y="82">4 · VERIFY</text>
+    <text class="s ink" x="820" y="108">Evidence, not claims</text>
+    <text class="xs muted" x="820" y="130">tests, linters, diff review,</text>
+    <text class="xs muted" x="820" y="148">security and performance,</text>
+    <text class="xs muted" x="820" y="166">sub-agent work re-checked</text>
+  </g>
+  <path class="line" d="M980 122 H996" marker-end="url(#arrow)"/>
+  <g>
+    <rect class="card" x="1000" y="56" width="168" height="132" rx="10"/>
+    <text class="step ok" x="1016" y="82">5 · DELIVER</text>
+    <text class="s ink" x="1016" y="108">Short summary + link</text>
+    <text class="xs muted" x="1016" y="130">what changed, how it</text>
+    <text class="xs muted" x="1016" y="148">was verified, limits,</text>
+    <text class="xs muted" x="1016" y="166">out-of-scope findings</text>
+  </g>
+
+  <!-- Guardrails -->
+  <path class="gate" d="M892 188 V224 M1084 188 V224"/>
+  <rect class="ok-soft" x="216" y="224" width="952" height="96" rx="10"/>
+  <text class="step ok" x="236" y="252">GUARDRAILS ON EVERY COMMIT</text>
+  <g>
+    <rect class="card" x="236" y="266" width="200" height="38" rx="8"/><text class="s ink" x="252" y="290">Tests and linters pass</text>
+    <rect class="card" x="448" y="266" width="220" height="38" rx="8"/><text class="s ink" x="464" y="290">No hardcoded secret or key</text>
+    <rect class="card" x="680" y="266" width="190" height="38" rx="8"/><text class="s ink" x="696" y="290">No AI co-author line</text>
+    <rect class="card" x="882" y="266" width="270" height="38" rx="8"/><text class="s ink" x="898" y="290">Same checks in CI on every PR</text>
+  </g>
+
+  <!-- Outputs -->
+  <text class="step muted" x="32" y="368">WHAT YOU GET</text>
+  <g>
+    <rect class="card" x="32" y="382" width="272" height="150" rx="10"/>
+    <text class="h ink" x="50" y="410">Visual reports</text>
+    <text class="xs muted" x="50" y="432">verdict, key figures, findings</text>
+    <text class="xs muted" x="50" y="450">by severity, before → after</text>
+    <rect class="ok-soft" x="50" y="466" width="70" height="44" rx="6"/><text class="h ok" x="62" y="494">78</text><text class="xs muted" x="88" y="494">/100</text>
+    <rect class="warn-soft" x="128" y="466" width="70" height="44" rx="6"/><text class="h warn" x="140" y="494">2.1</text><text class="xs muted" x="168" y="494">s</text>
+    <rect class="accent-soft" x="206" y="466" width="80" height="44" rx="6"/><text class="h accent" x="216" y="494">−62%</text>
+  </g>
+  <g>
+    <rect class="card" x="320" y="382" width="272" height="150" rx="10"/>
+    <text class="h ink" x="338" y="410">API docs, Postman export</text>
+    <text class="xs muted" x="338" y="432">in your site's colours, send</text>
+    <text class="xs muted" x="338" y="450">requests, fields and types</text>
+    <rect class="accent-soft" x="338" y="466" width="44" height="20" rx="4"/><text class="mono accent" x="345" y="480">GET</text>
+    <text class="mono ink" x="390" y="480">/orders</text>
+    <rect class="ok-soft" x="338" y="492" width="44" height="20" rx="4"/><text class="mono ok" x="342" y="506">POST</text>
+    <text class="mono ink" x="390" y="506">/orders</text>
+    <rect class="accent" x="482" y="478" width="92" height="26" rx="6"/><text class="xs on-accent" x="494" y="495">Postman ↓</text>
+  </g>
+  <g>
+    <rect class="card" x="608" y="382" width="272" height="150" rx="10"/>
+    <text class="h ink" x="626" y="410">Data model explorer</text>
+    <text class="xs muted" x="626" y="432">zoom, rotate, focus a table,</text>
+    <text class="xs muted" x="626" y="450">FK without index flagged</text>
+    <path class="line" d="M680 482 L752 470 M680 482 L752 506 M752 470 L824 488"/>
+    <path d="M752 506 L824 488" stroke="#9a6300" stroke-width="2" stroke-dasharray="4 4" fill="none"/>
+    <rect class="card" x="640" y="472" width="80" height="22" rx="5"/><text class="mono ink" x="650" y="487">orders</text>
+    <rect class="card" x="722" y="459" width="64" height="22" rx="5"/><text class="mono ink" x="732" y="474">users</text>
+    <rect class="card" x="716" y="496" width="76" height="22" rx="5"/><text class="mono ink" x="724" y="511">clients</text>
+    <rect class="card" x="800" y="477" width="62" height="22" rx="5"/><text class="mono ink" x="809" y="492">sites</text>
+  </g>
+  <g>
+    <rect class="card" x="896" y="382" width="272" height="150" rx="10"/>
+    <text class="h ink" x="914" y="410">Performance budgets</text>
+    <text class="xs muted" x="914" y="432">web and mobile, blocks the PR</text>
+    <text class="xs muted" x="914" y="450">that makes a page heavier</text>
+    <text class="mono muted" x="914" y="480">api_kb</text><rect class="accent-soft" x="980" y="470" width="168" height="12" rx="3"/><rect class="ok" x="980" y="470" width="96" height="12" rx="3"/>
+    <text class="mono muted" x="914" y="506">lcp_ms</text><rect class="accent-soft" x="980" y="496" width="168" height="12" rx="3"/><rect class="warn" x="980" y="496" width="150" height="12" rx="3"/>
+  </g>
+
+  <!-- Agents -->
+  <text class="s muted" x="32" y="586">Works with</text>
+  <g>
+    <rect class="card" x="108" y="566" width="120" height="30" rx="15"/><text class="s ink" x="126" y="586">Claude Code</text>
+    <rect class="card" x="238" y="566" width="80" height="30" rx="15"/><text class="s ink" x="256" y="586">Codex</text>
+    <rect class="card" x="328" y="566" width="138" height="30" rx="15"/><text class="s ink" x="346" y="586">GitHub Copilot</text>
+    <rect class="card" x="476" y="566" width="104" height="30" rx="15"/><text class="s ink" x="494" y="586">OpenCode</text>
+    <rect class="card" x="590" y="566" width="196" height="30" rx="15"/><text class="s ink" x="608" y="586">any Skills-compatible agent</text>
+  </g>
+  <text class="xs muted" x="32" y="626">Any stack: PHP · Laravel · Symfony · Node · React · React Native · Expo · Python · FastAPI · SQL</text>
+</svg>

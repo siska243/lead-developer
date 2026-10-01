@@ -2,6 +2,8 @@
 
 Makes your AI coding agent work like a **senior Lead Developer**: zero regression, security first, nothing invented, scope respected, tests before "done".
 
+![How Siska Lead Developer works: a request goes through understand, plan in micro-tasks, implement, verify and deliver, guarded on every commit by tests, linters, a secret scan and the same checks in CI; it produces visual reports, API docs with a Postman export, a data model explorer and performance budgets, with Claude Code, Codex, GitHub Copilot or OpenCode.](docs/images/overview.svg)
+
 ## Commands
 
 | Command | What it does |
@@ -401,6 +403,7 @@ Layout:
 - `references/`: details loaded on demand;
 - `skills/`: the `:xxx` commands;
 - `scripts/`;
+- `docs/images/`: the README illustration;
 - `templates/`: `mcp/` (MCP server), `report/` (visual reports), `api-docs/` (API docs page), `data-model/` (schema explorer), `ci/` (CI jobs);
 - `compat/`: layers specific to each agent.
 
