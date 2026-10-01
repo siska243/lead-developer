@@ -70,15 +70,15 @@ sld_git_branch() {
   git -C "$1" symbolic-ref --short HEAD 2>/dev/null || git -C "$1" rev-parse --short HEAD 2>/dev/null || echo unknown
 }
 
-# sld_setting ROOT KEY -> value of KEY ("on"/"off"), project .siska/settings first,
-# then the user's ~/.siska/settings; "on" when unset. SLD_HOME overrides $HOME (tests).
+# sld_setting ROOT KEY [DEFAULT] -> value of KEY ("on"/"off"), project .siska/settings first,
+# then the user's ~/.siska/settings; DEFAULT ("on" if not given) when unset. SLD_HOME overrides $HOME (tests).
 sld_setting() {
   local f v
   for f in "$1/.siska/settings" "${SLD_HOME:-$HOME}/.siska/settings"; do
     v="$(sed -n "s/^$2[[:space:]]*=[[:space:]]*//p" "$f" 2>/dev/null | tail -n 1)"
     [ -n "$v" ] && { echo "$v"; return; }
   done
-  echo on
+  echo "${3:-on}"
 }
 
 # sld_timeout SECONDS CMD... -> run CMD, exit 124 when it takes longer (GNU/BSD timeout if present).

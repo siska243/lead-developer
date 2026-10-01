@@ -622,6 +622,21 @@ if command -v git >/dev/null 2>&1; then
   SLD_HOME="$SH" bash "$REPO/scripts/settings.sh" "$ST" ledger on >/dev/null
   out="$(SLD_HOME="$SH" bash "$REPO/scripts/settings.sh" "$ST")"
   assert_contains "project value wins over global" "$out" "ledger:      on"
+  out="$(SLD_HOME="$SH" bash "$REPO/scripts/settings.sh" "$ST")"
+  assert_contains "micro-tasks off by default" "$out" "micro-tasks: off"
+  out="$(printf '{"cwd":"%s","session_id":"m1"}' "$ST" | SLD_HOME="$SH" SLD_STATE_DIR="$TMP" bash "$REPO/scripts/ledger-hook.sh" prompt)"
+  check "no micro reminder while off" not_contains "$out" "micro-tasks ON"
+  SLD_HOME="$SH" bash "$REPO/scripts/settings.sh" "$ST" micro on >/dev/null
+  out="$(printf '{"cwd":"%s","session_id":"m2"}' "$ST" | SLD_HOME="$SH" SLD_STATE_DIR="$TMP" bash "$REPO/scripts/ledger-hook.sh" prompt)"
+  assert_contains "micro reminder injected when on" "$out" "micro-tasks ON"
+  assert_contains "ledger reminder still there" "$out" "siska ledger"
+  SLD_HOME="$SH" bash "$REPO/scripts/settings.sh" "$ST" ledger off >/dev/null
+  out="$(printf '{"cwd":"%s","session_id":"m3"}' "$ST" | SLD_HOME="$SH" SLD_STATE_DIR="$TMP" bash "$REPO/scripts/ledger-hook.sh" prompt)"
+  assert_contains "micro reminder even with the ledger off" "$out" "micro-tasks ON"
+  check "ledger silent when off" not_contains "$out" "siska ledger"
+  SLD_HOME="$SH" bash "$REPO/scripts/settings.sh" "$ST" ledger on >/dev/null
+  SLD_HOME="$SH" bash "$REPO/scripts/settings.sh" "$ST" micro off >/dev/null
+  check "micro off stored" grep -q "^micro-tasks=off$" "$ST/.siska/settings"
   SLD_HOME="$SH" bash "$REPO/scripts/settings.sh" "$ST" gate maybe >/dev/null 2>&1 && s=0 || s=$?
   assert_status "invalid value rejected" 2 "$s"
 fi

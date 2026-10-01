@@ -24,6 +24,7 @@ Fait travailler ton agent IA comme un **Lead Developer senior** : zéro régress
 | `/siska-lead-developer:document <fonctionnalité>` | Documentation : fonctionnelle, puis technique (appels API…) · `--functional`, `--api`, `--code` |
 | `/siska-lead-developer:skills` | Skills et MCP installés · `find <besoin>` · `vet <source>` · `install <source>` (seulement après ton oui) |
 | `/siska-lead-developer:settings gate off` | Désactive / réactive (`gate on`) le contrôle avant commit ; `ledger off` pour le suivi ; `--global` pour tous les projets |
+| `/siska-lead-developer:settings micro on` | Mode micro-tâches : chaque tâche découpée en 2 à 4 micro-tâches courtes, annoncées, vérifiées et résumées une par une ; le travail des sous-agents est validé avant intégration · `micro off` pour arrêter |
 | `/siska-lead-developer:tickets` | Demandes en cours (T1, T2…) avec statut et priorité · `--all` pour toutes |
 | `/siska-lead-developer:tickets t2 done` | Modifier un ticket : `done`, `todo`, `progress`, `cancel`, `info`, `P1`–`P3`, ou ajouter une consigne |
 
@@ -43,7 +44,7 @@ Le plugin installe un hook : avant chaque `git commit` lancé par Claude, il ex�
   - **mobile** : Expo, React Native.
 - Pour choisir exactement quoi lancer, crée `.siska/checks` à la racine du projet, avec une commande par ligne. Tu peux étiqueter une ligne : `front: npm run lint`, `back: php artisan test`.
 - Le hook avant commit contrôle toujours tout. `check-code --front` sert à contrôler une seule partie pendant que tu travailles.
-- **Désactiver le contrôle** sans désactiver le plugin : `/siska-lead-developer:settings gate off`, puis `gate on` pour le réactiver. Le réglage vaut pour le projet (`.siska/settings`), ou pour tous tes projets avec `--global`. Tant qu'il est désactivé, chaque commit affiche un avertissement. Le suivi des demandes se désactive de la même façon : `settings ledger off`.
+- **Désactiver le contrôle** sans désactiver le plugin (voir aussi le mode micro-tâches, plus bas) : `/siska-lead-developer:settings gate off`, puis `gate on` pour le réactiver. Le réglage vaut pour le projet (`.siska/settings`), ou pour tous tes projets avec `--global`. Tant qu'il est désactivé, chaque commit affiche un avertissement. Le suivi des demandes se désactive de la même façon : `settings ledger off`.
 - **Passer le contrôle** pour un commit précis :
   - demande-le à l'agent (« skip le contrôle pour ce commit ») : il committe avec `SISKA_SKIP_GATE=1 git commit …` et le signale dans son rapport. Il ne le fait jamais sans ta demande ;
   - ou lance toi-même `SISKA_SKIP_GATE=1 git commit -m "…"`. Avec le hook git (autres agents), `git commit --no-verify` marche aussi ;
@@ -126,6 +127,26 @@ bash scripts/mobile-scan.sh com.societe.app --flow .maestro/orders.yaml     # me
 ```
 
 Le script utilise `adb` et `dumpsys` sur un téléphone branché ou un émulateur, et Maestro pour rejouer un parcours. Les identifiants d'un compte de test passent en variables Maestro (`-e`), jamais dans le fichier du parcours. Il prévient quand les chiffres ne sont qu'indicatifs : build debug ou émulateur. Pour des chiffres réels, utilise un build release sur un téléphone de milieu de gamme. iOS se mesure avec Xcode Instruments. Le poids des réponses de l'API est vérifié dans le code et le backend, comme pour le web.
+
+## Mode micro-tâches
+
+Pour éviter les oublis et les erreurs silencieuses d'une longue tâche faite d'un bloc :
+
+```text
+/siska-lead-developer:settings micro on            # ce projet
+/siska-lead-developer:settings --global micro on   # tous tes projets
+/siska-lead-developer:settings micro off
+```
+
+Quand il est activé :
+- chaque tâche non triviale est **découpée en 2 à 4 micro-tâches**, chacune avec un résultat vérifiable : une fonction et son test, un endpoint et sa requête de test, un composant et ses états ;
+- **avant** chaque micro-tâche, l'agent t'explique en 2 ou 3 lignes ce qu'il va faire, pourquoi, et comment il va le vérifier ;
+- **après**, il vérifie (tests, lint, relecture du diff) et te résume le résultat avec la preuve ; la suivante ne démarre jamais sur une micro-tâche cassée ;
+- une micro-tâche indépendante peut partir chez un **sous-agent**, avec un contrat précis (fichiers, critères d'acceptation). Le lead **relit tout son diff et relance les vérifications avant de l'intégrer** ; rien n'est intégré sans relecture ;
+- les micro-tâches sont suivies dans le ticket : `T12.1`, `T12.2`… ;
+- une correction triviale reste en une seule étape.
+
+Désactivé par défaut. Dans Claude Code, le rappel est injecté à chaque message. Les autres agents lisent le réglage `micro-tasks` de `.siska/settings`, que `bash scripts/settings.sh . micro on` écrit aussi. Règles complètes : `references/microtasks.md`.
 
 ## Skills et MCP
 
@@ -257,12 +278,44 @@ Depuis un clone local, remplace `siska243/lead-developer` par le chemin du dossi
 
 ## Mettre à jour
 
+Deux commandes, dans cet ordre : la première récupère le catalogue à jour depuis GitHub, la seconde installe la nouvelle version du plugin.
+
 ```bash
 claude plugin marketplace update siska
 claude plugin update siska-lead-developer@siska
 ```
 
+Puis **redémarre Claude Code**, ou tape `/reload-plugins` dans une session ouverte. Tant que tu ne l'as pas fait, la session garde l'ancienne version, et ses hooks aussi.
+
+Pour vérifier la version installée :
+
+```bash
+claude plugin list          # siska-lead-developer@siska · Version: …
+```
+
+Dans Claude Code, tu peux aussi passer par `/plugin`, onglet **Installed**, puis `siska-lead-developer`.
+
 Avec une installation depuis un clone local : `git pull`, puis `/reload-plugins`.
+
+## Désactiver et réactiver
+
+Désactiver garde le plugin installé : ses commandes, ses règles et ses hooks (contrôle avant commit, suivi des demandes) s'arrêtent jusqu'à la réactivation.
+
+```bash
+claude plugin disable siska-lead-developer@siska
+claude plugin enable siska-lead-developer@siska
+```
+
+- `--scope user|project|local` choisit où le réglage s'applique : pour toi partout, pour tout le monde sur ce projet, ou seulement ta copie de ce projet. Sans l'option, la portée de l'installation est détectée.
+- Dans Claude Code : `/plugin`, onglet **Installed**, `siska-lead-developer`, puis **Disable** ou **Enable**.
+- Redémarre ensuite, ou tape `/reload-plugins`.
+
+Pour couper seulement une partie, sans désactiver le plugin :
+- le contrôle avant commit : `/siska-lead-developer:settings gate off`, puis `gate on` ;
+- le suivi des demandes : `/siska-lead-developer:settings ledger off`, puis `ledger on` ;
+- `--global` applique le réglage à tous tes projets.
+
+Le scan de secrets et le blocage des co-auteurs IA restent actifs avec `gate off`. Seule la désactivation du plugin les arrête.
 
 ## Désinstaller
 
@@ -291,6 +344,31 @@ bash scripts/install-git-hook.sh /chemin/du/projet    # hooks pre-commit + commi
 - Désinstaller : `bash scripts/install.sh --uninstall` et `bash scripts/install-git-hook.sh /chemin/du/projet --uninstall`.
 - Le hook git bloque tous les commits du dépôt, que ce soit un agent ou toi qui committe. Il ne remplace jamais un hook existant, ni husky ou lefthook : dans ce cas, il affiche la ligne à ajouter.
 - Détails par agent : `compat/README.md`.
+
+**Mettre à jour** (Codex, Copilot, OpenCode…) :
+
+```bash
+cd lead-developer && git pull
+bash scripts/install.sh --force        # ou --target <dossier> si tu l'avais utilisé
+```
+
+`--force` remplace l'installation et garde l'ancienne en `*.bak.<date>`. Avec `--link`, le skill principal suit `git pull`, mais les commandes sont générées : relance `install.sh --force --link` pour obtenir les nouvelles. Redémarre ensuite la session de l'agent.
+
+**Désactiver** : ces agents n'ont pas de bouton commun pour ça. Utilise le réglage de skills de ton agent s'il en a un, sinon désinstalle et réinstalle plus tard :
+
+```bash
+bash scripts/install.sh --uninstall                            # retire le skill et ses commandes
+bash scripts/install-git-hook.sh /chemin/du/projet --uninstall  # retire le contrôle avant commit
+```
+
+Pour couper seulement le contrôle avant commit sur un projet : `bash scripts/settings.sh /chemin/du/projet gate off`. Le scan de secrets et le blocage des co-auteurs IA restent actifs.
+
+**Ce qui change hors Claude Code :**
+- Les scripts marchent partout, avec n'importe quel agent ou à la main : scans, budgets, doc d'API, modèle de données, rapports.
+- Les **rapports** et les pages (doc d'API, explorateur du modèle de données) sont des **fichiers HTML** à ouvrir dans le navigateur (`.siska/reports/`, `docs/`), et non des artifacts partagés.
+- Le **contrôle avant commit** passe par le hook git : il bloque aussi les commits faits à la main.
+- Le **suivi des demandes** (T1, T2…) est une règle que l'agent suit. Seul Claude Code le rend obligatoire, grâce à ses hooks de session.
+- Les MCP navigateur (Playwright, Chrome DevTools) servent quand ton agent les a configurés.
 
 **Ne pas utiliser ce script pour Claude Code** : utilise le plugin. Le script refuse d'installer dans `.claude/skills` si le plugin y est déjà, pour éviter un doublon.
 

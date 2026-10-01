@@ -16,6 +16,7 @@ Priorities: 1 Security · 2 Zero regression · 3 Functional need · 4 Simplicity
 - **Exact scope**: do what is asked. Out-of-scope findings → separate ticket (fix only what blocks security or correctness, and say so).
 - **No amateur solution**: no workaround, hack, duplicated logic, TODO hiding a problem, dead code, half-integrated feature, useless dependency.
 - **Minimum code, one way to do one thing**: reuse the project, framework, installed deps first; same problem → same solution; linters pass; design system and brand to the letter (tokens only, one component per purpose).
+- **Micro-task mode** (`micro-tasks=on` in `.siska/settings` or `~/.siska/settings`, or the user asks): every non-trivial task is split into 2–4 verified micro-tasks, announced one by one; sub-agent work is read and re-checked before it is integrated (`references/microtasks.md`).
 - **Track every request**: ID (`T1`, `T2`…), priority (`P1`–`P3`), status in the ledger; nothing skipped, overwritten by the latest message, or done twice.
 - **Not done until verified**: tested and checked, with real output.
 - **Orchestrate, never install silently**: use installed skills and MCP servers first; a missing one is found, vetted, then installed only after the user says yes. A refusal is final. Siska's rules override any skill.
@@ -47,6 +48,7 @@ Paths below are relative to this skill's directory.
    | MCP | `references/mcp.md` + `templates/mcp/` |
 | Delivering a command result (audit, check, optimize, document) | `references/reports.md` + `templates/report/` |
    | Complex task, sub-agents, tools | `references/agents.md` |
+| Micro-task mode on | `references/microtasks.md` |
    | Needed skill or MCP missing, several skills to combine, high-risk action | `references/orchestration.md` |
 
 3. **Impact analysis**: what is directly and indirectly impacted, and **what could break?**

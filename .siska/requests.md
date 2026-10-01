@@ -8,7 +8,9 @@
 
 
 
-## T33 · API docs like API Platform: site's colours, exports for Postman and others
-- Status: ✅ done · Priority: P1 · Created: 2026-09-30 · Updated: 2026-09-30
-- Instructions: 2026-09-30 same for the API: it must be like API Platform; the design adapts to the colours of the site where it is used; export to use in Postman and others.
-- Result: templates/api-docs/page.html: bar in the project colours (brand read from the front: Rubix → oklch(0.205 0 0) from src/styles/output.css), logo/font options, dark variant, exports (Postman collection + environment, OpenAPI) verified as real downloads; --spec-url live spec (served test OK); shared page uses the downloads capability; demo https://claude.ai/artifact/9f1mHjqaMtr2rXZZyLBL3t; in v1.13.0
+
+
+## T36 · Micro-task mode (on/off)
+- Status: ✅ done · Priority: P1 · Created: 2026-10-01 · Updated: 2026-10-01
+- Instructions: 2026-10-01 add a micro-task mode that can be turned on/off: the agent does not do a whole task for 10–15 minutes; to avoid errors and gaps it splits a task into 2, 3 or 4 micro-tasks, explains what it does, may give them to sub-agents but must validate before integrating.
+- Result: settings micro on|off (default off, project or --global), references/microtasks.md (2–4 verified micro-tasks, announce/do/verify/report, sub-agent contract + review before integration, T<n>.1 tracking), SKILL.md rule, prompt hook reminder (also with ledger off), help/README/CHANGELOG/compat; 7 tests
