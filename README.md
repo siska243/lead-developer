@@ -24,6 +24,7 @@ Fait travailler ton agent IA comme un **Lead Developer senior** : zéro régress
 | `/siska-lead-developer:document <fonctionnalité>` | Documentation : fonctionnelle, puis technique (appels API…) · `--functional`, `--api`, `--code` |
 | `/siska-lead-developer:skills` | Skills et MCP installés · `find <besoin>` · `vet <source>` · `install <source>` (seulement après ton oui) |
 | `/siska-lead-developer:settings gate off` | Désactive / réactive (`gate on`) le contrôle avant commit ; `ledger off` pour le suivi ; `--global` pour tous les projets |
+| `/siska-lead-developer:settings micro on` | Mode micro-tâches : chaque tâche découpée en 2 à 4 micro-tâches courtes, annoncées, vérifiées et résumées une par une ; le travail des sous-agents est validé avant intégration · `micro off` pour arrêter |
 | `/siska-lead-developer:tickets` | Demandes en cours (T1, T2…) avec statut et priorité · `--all` pour toutes |
 | `/siska-lead-developer:tickets t2 done` | Modifier un ticket : `done`, `todo`, `progress`, `cancel`, `info`, `P1`–`P3`, ou ajouter une consigne |
 
@@ -43,7 +44,7 @@ Le plugin installe un hook : avant chaque `git commit` lancé par Claude, il ex�
   - **mobile** : Expo, React Native.
 - Pour choisir exactement quoi lancer, crée `.siska/checks` à la racine du projet, avec une commande par ligne. Tu peux étiqueter une ligne : `front: npm run lint`, `back: php artisan test`.
 - Le hook avant commit contrôle toujours tout. `check-code --front` sert à contrôler une seule partie pendant que tu travailles.
-- **Désactiver le contrôle** sans désactiver le plugin : `/siska-lead-developer:settings gate off`, puis `gate on` pour le réactiver. Le réglage vaut pour le projet (`.siska/settings`), ou pour tous tes projets avec `--global`. Tant qu'il est désactivé, chaque commit affiche un avertissement. Le suivi des demandes se désactive de la même façon : `settings ledger off`.
+- **Désactiver le contrôle** sans désactiver le plugin (voir aussi le mode micro-tâches, plus bas) : `/siska-lead-developer:settings gate off`, puis `gate on` pour le réactiver. Le réglage vaut pour le projet (`.siska/settings`), ou pour tous tes projets avec `--global`. Tant qu'il est désactivé, chaque commit affiche un avertissement. Le suivi des demandes se désactive de la même façon : `settings ledger off`.
 - **Passer le contrôle** pour un commit précis :
   - demande-le à l'agent (« skip le contrôle pour ce commit ») : il committe avec `SISKA_SKIP_GATE=1 git commit …` et le signale dans son rapport. Il ne le fait jamais sans ta demande ;
   - ou lance toi-même `SISKA_SKIP_GATE=1 git commit -m "…"`. Avec le hook git (autres agents), `git commit --no-verify` marche aussi ;
@@ -126,6 +127,26 @@ bash scripts/mobile-scan.sh com.societe.app --flow .maestro/orders.yaml     # me
 ```
 
 Le script utilise `adb` et `dumpsys` sur un téléphone branché ou un émulateur, et Maestro pour rejouer un parcours. Les identifiants d'un compte de test passent en variables Maestro (`-e`), jamais dans le fichier du parcours. Il prévient quand les chiffres ne sont qu'indicatifs : build debug ou émulateur. Pour des chiffres réels, utilise un build release sur un téléphone de milieu de gamme. iOS se mesure avec Xcode Instruments. Le poids des réponses de l'API est vérifié dans le code et le backend, comme pour le web.
+
+## Mode micro-tâches
+
+Pour éviter les oublis et les erreurs silencieuses d'une longue tâche faite d'un bloc :
+
+```text
+/siska-lead-developer:settings micro on            # ce projet
+/siska-lead-developer:settings --global micro on   # tous tes projets
+/siska-lead-developer:settings micro off
+```
+
+Quand il est activé :
+- chaque tâche non triviale est **découpée en 2 à 4 micro-tâches**, chacune avec un résultat vérifiable : une fonction et son test, un endpoint et sa requête de test, un composant et ses états ;
+- **avant** chaque micro-tâche, l'agent t'explique en 2 ou 3 lignes ce qu'il va faire, pourquoi, et comment il va le vérifier ;
+- **après**, il vérifie (tests, lint, relecture du diff) et te résume le résultat avec la preuve ; la suivante ne démarre jamais sur une micro-tâche cassée ;
+- une micro-tâche indépendante peut partir chez un **sous-agent**, avec un contrat précis (fichiers, critères d'acceptation). Le lead **relit tout son diff et relance les vérifications avant de l'intégrer** ; rien n'est intégré sans relecture ;
+- les micro-tâches sont suivies dans le ticket : `T12.1`, `T12.2`… ;
+- une correction triviale reste en une seule étape.
+
+Désactivé par défaut. Dans Claude Code, le rappel est injecté à chaque message. Les autres agents lisent le réglage `micro-tasks` de `.siska/settings`, que `bash scripts/settings.sh . micro on` écrit aussi. Règles complètes : `references/microtasks.md`.
 
 ## Skills et MCP
 
