@@ -14,10 +14,12 @@
 - Never add a second library for something an installed one already does (two HTTP clients, two date libraries, two state managers, two UI kits).
 - Follow the project's linters and formatters (Pint, PHP-CS-Fixer, PHPStan/Larastan, ESLint, Prettier, TypeScript strict, Ruff, Black, mypy…) and run them on changed files. Do not change their config to make code pass.
 
-## Naming
-- English for variables, functions, methods, classes, services: `$user`, `$paymentStatus`, `createOrder()`, `calculateTotal()`, `PaymentService`, `OrderRepository`.
-- Tables and columns follow the project conventions.
-- **Existing project conventions always win** over these defaults.
+## Naming – English, always
+- **Everything written in code is English**, whatever the developer's or the product's language: variables, functions, methods, classes, services, files, routes, tables, columns, indexes, migrations, enums, config keys, events, queues, translation keys, comments, doc comments, commit messages. `$user`, `$paymentStatus`, `createOrder()`, `calculateTotal()`, `PaymentService`, `OrderRepository`, `orders.delivery_date`, `order_statuses`. Never `$commande`, `calculerTotal()`, `date_livraison`.
+- Senior conventions of the stack on top: casing (`camelCase`, `snake_case` tables and columns, `PascalCase` classes), plural table names where the framework expects them, clear full words, no abbreviations nobody shares.
+- **Text shown to the product's users** (labels, messages, emails) is written in the product's language through its i18n system (`lang/fr/*.php`, `i18n/fr.json`, `__('orders.created')`), with English keys. Never hardcode it in a non-English identifier.
+- **Existing non-English names** (a French column, a French method) are never renamed silently: renaming a column, a route or a public method breaks queries, API clients and mobile apps. New code around them is in English; the rename is proposed as a separate ticket with a compatible migration (new column, backfill, both read during the transition, old one dropped last) and the list of callers. Report them as found.
+- The project's casing and structure conventions win; the language rule does not change.
 
 ## Comments and documentation
 - Comments explain **why**, not what.

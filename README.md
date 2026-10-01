@@ -26,7 +26,7 @@ Makes your AI coding agent work like a **senior Lead Developer**: zero regressio
 | `/siska-lead-developer:document <feature>` | Documentation: functional, then technical (API calls…) · `--functional`, `--api`, `--code` |
 | `/siska-lead-developer:skills` | Installed skills and MCP servers · `find <need>` · `vet <source>` · `install <source>` (only after your yes) |
 | `/siska-lead-developer:settings gate off` | Turns the pre-commit check off / on (`gate on`); `ledger off` for request tracking; `--global` for every project |
-| `/siska-lead-developer:settings language fr` | Language the agent answers you in and writes new project docs in (`auto`, the default, follows the language of your messages); code and commit messages stay in English |
+| `/siska-lead-developer:settings language fr` | Language the agent answers you in and writes reports in (`auto`, the default, follows the language of your messages); code, database, docs and commits are always English |
 | `/siska-lead-developer:settings micro on` | Micro-task mode: every task split into 2 to 4 short micro-tasks, announced, verified and summarized one by one; sub-agent work is validated before integration · `micro off` to stop |
 | `/siska-lead-developer:tickets` | Open requests (T1, T2…) with status and priority · `--all` for every request |
 | `/siska-lead-developer:tickets t2 done` | Change a ticket: `done`, `todo`, `progress`, `cancel`, `info`, `P1`–`P3`, or add an instruction |
@@ -151,11 +151,13 @@ Off by default. In Claude Code, the reminder is injected on every message. Other
 
 ## Your language
 
-This repository is documented in English, but the agent works in **your** language:
-- it answers in the language of your messages, or in the one you set: `/siska-lead-developer:settings language fr` (`--global` for every project, `language auto` to go back to the default);
-- docs it writes in a project follow the language the project's docs already use; when there are none yet, your language;
-- visual reports are written in your language, and their interface words follow it (English, French, Spanish, German and Portuguese; others fall back to English);
-- code, identifiers and commit messages stay in English, unless the project's own convention says otherwise.
+The agent **talks to you** in your language, and **writes the project** in English.
+
+- It answers in the language of your messages, or in the one you set: `/siska-lead-developer:settings language fr` (`--global` for every project, `language auto` to go back to the default).
+- Visual reports are written in your language, and their interface words follow it (English, French, Spanish, German and Portuguese; others fall back to English).
+- **Everything in the project is English, always**: variables, functions, classes, files, routes, tables, columns, migrations, comments, doc comments, documentation and commit messages, following the stack's senior conventions. `createOrder()`, `orders.delivery_date`, never `creerCommande()` or `date_livraison`.
+- Text your app shows its users (labels, messages, emails) is in your product's language, through its i18n files, with English keys.
+- Existing French names are never renamed silently: that would break queries, API clients and mobile apps. New code is in English, and the rename is proposed as a separate ticket with a compatible migration.
 
 In Claude Code, a set language is reminded on every message. Other agents read `language` in `.siska/settings`.
 

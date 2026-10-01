@@ -539,15 +539,16 @@ Avoid:
 
 # 17. Naming
 
-By default:
+Always in English, never in French (senior developer standard):
 
 * variables in English;
 * functions in English;
 * methods in English;
 * classes in English;
 * services in English;
-* tables according to the project's conventions;
-* columns according to the project's conventions.
+* tables in English;
+* columns in English;
+* database, migrations, comments and documentation in English.
 
 Example:
 
@@ -563,7 +564,7 @@ PaymentService
 OrderRepository
 ```
 
-But the project's existing conventions take priority.
+The project's casing and structure conventions take priority, never its language: existing non-English names are not renamed silently (zero regression); their rename is proposed as a separate ticket with a compatible migration.
 
 ---
 

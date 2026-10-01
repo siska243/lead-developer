@@ -6,8 +6,9 @@
 #   gate:   commit gate (tests, lint, secrets before every commit) – on by default
 #   ledger: request ledger hooks (reminder on each message, update required) – on by default
 #   micro:  micro-task mode (tasks split into 2–4 verified micro-tasks, references/microtasks.md) – off by default
-#   language: language the agent answers the developer in, and of generated docs when the project
-#             has none yet (fr, en, es, pt-BR…); auto (default) = the language of the developer's messages
+#   language: language the agent answers the developer in and writes visual reports in (fr, en, es,
+#             pt-BR…); auto (default) = the language of the developer's messages. Project files
+#             (code, database, docs, commits) are always English.
 # Stored in PROJECT/.siska/settings, or ~/.siska/settings with --global
 # (the project value wins). Only change it when the user asks.
 set -euo pipefail

@@ -645,7 +645,8 @@ if command -v git >/dev/null 2>&1; then
   assert_contains "language auto by default" "$out" "language:    auto"
   SLD_HOME="$SH" bash "$REPO/scripts/settings.sh" "$ST" language fr >/dev/null
   out="$(printf '{"cwd":"%s","session_id":"g1"}' "$ST" | SLD_HOME="$SH" SLD_STATE_DIR="$TMP" bash "$REPO/scripts/ledger-hook.sh" prompt)"
-  assert_contains "language reminder injected" "$out" "answer the developer in 'fr'"
+  assert_contains "language reminder injected" "$out" "write visual reports in 'fr'"
+  assert_contains "project stays English whatever the language" "$out" "Everything in the project stays English"
   SLD_HOME="$SH" bash "$REPO/scripts/settings.sh" "$ST" language 'fr;rm -rf' >/dev/null 2>&1 && s=0 || s=$?
   assert_status "invalid language code refused" 2 "$s"
   SLD_HOME="$SH" bash "$REPO/scripts/settings.sh" "$ST" language auto >/dev/null

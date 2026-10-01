@@ -23,7 +23,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 . "$SCRIPT_DIR/lib.sh"
 lang_reminder() {
   local lang; lang="$(sld_setting "$root" language auto)"
-  [ "$lang" = auto ] || echo "siska language: answer the developer in '$lang'; write generated project docs in it when the project has no docs language yet; code, identifiers and commit messages stay in English (or the project's convention)."
+  [ "$lang" = auto ] || echo "siska language: answer the developer and write visual reports in '$lang'. Everything in the project stays English: code, identifiers, tables, columns, comments, docs, commit messages."
 }
 micro_reminder() {
   [ "$(sld_setting "$root" micro-tasks off)" = on ] || return 0
