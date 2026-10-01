@@ -259,6 +259,10 @@ JSON
   printf '{"title":"x</script><script>alert(1)</script>","verdict":{"status":"ok"}}' >"$TMP/evil.json"
   bash "$REPO/scripts/report.sh" "$TMP/evil.json" --out "$TMP/r/evil.html" >/dev/null
   check "report escapes injected markup" not_contains "$(cat "$TMP/r/evil.html")" "<script>alert(1)"
+  printf '{"title":"Rapport","lang":"fr","verdict":{"status":"warn"},"next":["x"]}' >"$TMP/fr.json"
+  bash "$REPO/scripts/report.sh" "$TMP/fr.json" --out "$TMP/r/fr.html" >/dev/null
+  check "report carries the developer's language" grep -q '"lang":"fr"' "$TMP/r/fr.html"
+  check "report has the French interface words" grep -q 'Prochaines étapes' "$TMP/r/fr.html"
   echo '{nope' >"$TMP/bad.json"
   bash "$REPO/scripts/report.sh" "$TMP/bad.json" --out "$TMP/r/bad.html" >/dev/null 2>&1 && s=0 || s=$?
   assert_status "report rejects invalid JSON" 2 "$s"
@@ -637,6 +641,17 @@ if command -v git >/dev/null 2>&1; then
   SLD_HOME="$SH" bash "$REPO/scripts/settings.sh" "$ST" ledger on >/dev/null
   SLD_HOME="$SH" bash "$REPO/scripts/settings.sh" "$ST" micro off >/dev/null
   check "micro off stored" grep -q "^micro-tasks=off$" "$ST/.siska/settings"
+  out="$(SLD_HOME="$SH" bash "$REPO/scripts/settings.sh" "$ST")"
+  assert_contains "language auto by default" "$out" "language:    auto"
+  SLD_HOME="$SH" bash "$REPO/scripts/settings.sh" "$ST" language fr >/dev/null
+  out="$(printf '{"cwd":"%s","session_id":"g1"}' "$ST" | SLD_HOME="$SH" SLD_STATE_DIR="$TMP" bash "$REPO/scripts/ledger-hook.sh" prompt)"
+  assert_contains "language reminder injected" "$out" "write visual reports in 'fr'"
+  assert_contains "project stays English whatever the language" "$out" "Everything in the project stays English"
+  SLD_HOME="$SH" bash "$REPO/scripts/settings.sh" "$ST" language 'fr;rm -rf' >/dev/null 2>&1 && s=0 || s=$?
+  assert_status "invalid language code refused" 2 "$s"
+  SLD_HOME="$SH" bash "$REPO/scripts/settings.sh" "$ST" language auto >/dev/null
+  out="$(printf '{"cwd":"%s","session_id":"g2"}' "$ST" | SLD_HOME="$SH" SLD_STATE_DIR="$TMP" bash "$REPO/scripts/ledger-hook.sh" prompt)"
+  check "no language reminder on auto" not_contains "$out" "siska language"
   SLD_HOME="$SH" bash "$REPO/scripts/settings.sh" "$ST" gate maybe >/dev/null 2>&1 && s=0 || s=$?
   assert_status "invalid value rejected" 2 "$s"
 fi

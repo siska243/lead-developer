@@ -6,8 +6,8 @@
 #           of .siska/requests.md (stdout becomes context for the agent).
 #   stop:   block the end of the response (exit 2) while the ledger was not
 #           updated since the user's message. At most 2 blocks per message.
-# Micro-task mode (settings micro on): the prompt hook also reminds the micro-task rules,
-# even when the ledger is off.
+# Micro-task mode (settings micro on) and a fixed language (settings language <code>): the prompt
+# hook also reminds those rules, even when the ledger is off.
 # Only active inside git repositories. SLD_STATE_DIR overrides the state dir.
 set -uo pipefail
 
@@ -21,12 +21,16 @@ root="$(git -C "$dir" rev-parse --show-toplevel 2>/dev/null)" || exit 0
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck source=lib.sh
 . "$SCRIPT_DIR/lib.sh"
+lang_reminder() {
+  local lang; lang="$(sld_setting "$root" language auto)"
+  [ "$lang" = auto ] || echo "siska language: answer the developer and write visual reports in '$lang'. Everything in the project stays English: code, identifiers, tables, columns, comments, docs, commit messages."
+}
 micro_reminder() {
   [ "$(sld_setting "$root" micro-tasks off)" = on ] || return 0
   echo "siska micro-tasks ON (references/microtasks.md): split any non-trivial task into 2–4 micro-tasks, each with one verifiable result. Before each: say in 2–3 lines what, why, how it will be checked. After each: verify (tests, lint, diff), report briefly, then the next. Sub-agents: one micro-task each with files and acceptance criteria; read their diff and re-run the checks before integrating. Track them as T<n>.1, T<n>.2 in the ticket."
 }
 if [ "$(sld_setting "$root" ledger)" = off ]; then
-  [ "$MODE" = prompt ] && micro_reminder
+  [ "$MODE" = prompt ] && { lang_reminder; micro_reminder; }
   exit 0
 fi
 LEDGER="$root/.siska/requests.md"
@@ -46,6 +50,7 @@ case "$MODE" in
         END { flush() }' "$LEDGER" >"$LEDGER.tmp" && mv "$LEDGER.tmp" "$LEDGER"
     fi
     echo 0 >"$STATE"   # marks the time of the user's message; 0 blocks so far
+    lang_reminder
     micro_reminder
     echo "siska ledger: record this message in .siska/requests.md (new T<n>, or update the ticket it refers to). Append new tickets without reading the file; to change one, read only its lines. Duplicates: grep .siska/requests-archive.md. End with a compact table of open or changed tickets."
     echo "Format: '## T<n> · <title>' / '- Status: <⬜ todo|🔄 in progress|✅ done|❓ needs info|❌ cancelled> · Priority: <P1-P3> · Created: <date> · Updated: <date>' / '- Instructions:' dated lines / '- Result:' / '- Question:'"

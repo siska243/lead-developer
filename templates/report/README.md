@@ -35,6 +35,7 @@ bash scripts/report.sh data.json --out .siska/reports/x.html --standalone   # fi
   "next": ["Approve the index migration on orders.created_at"]
 }
 ```
+- `lang`: the developer's language (`references/documentation.md`); the page's own words follow it (en, fr, es, de, pt; others fall back to English). Write the content (title, summary, findings) in that language too.
 - `status`: `ok`, `warn`, `fail`, `info`. `severity`: `critical`, `high`, `medium`, `low`, `info`.
 - A table cell can be a string, a number, or `{ "text", "status" }` (shown as a pill).
 - `compare.better`: `lower` (default) or `higher`.

@@ -196,3 +196,17 @@
 - Status: ✅ done · Priority: P2 · Created: 2026-09-30 · Updated: 2026-09-30
 - Instructions: 2026-09-30 does all this also work with other models/agents like Codex etc.?
 - Result: checked: install.sh --target <tmp> generates 12 commands incl. optimize/api-docs/data-model, absolute paths, no Claude placeholders, templates copied; README and compat/README: what works where, update (git pull + install.sh --force), disable (uninstall / agent settings). New commands not run inside Codex in this session (Codex check-code verified earlier, T9)
+## T36 · Micro-task mode (on/off)
+- Status: ✅ done · Priority: P1 · Created: 2026-10-01 · Updated: 2026-10-01
+- Instructions: 2026-10-01 add a micro-task mode that can be turned on/off: the agent does not do a whole task for 10–15 minutes; to avoid errors and gaps it splits a task into 2, 3 or 4 micro-tasks, explains what it does, may give them to sub-agents but must validate before integrating.
+- Result: settings micro on|off (default off, project or --global), references/microtasks.md (2–4 verified micro-tasks, announce/do/verify/report, sub-agent contract + review before integration, T<n>.1 tracking), SKILL.md rule, prompt hook reminder (also with ledger off), help/README/CHANGELOG/compat; 7 tests
+## T38 · Illustration of what the plugin does in the README
+- Status: ✅ done · Priority: P3 · Created: 2026-10-01 · Updated: 2026-10-01
+- Instructions: 2026-10-01 add an image to the README that illustrates what the plugin does.
+- Result: docs/images/overview.svg (workflow, guardrails, outputs, agents; light and dark), checked rendered in Chrome, added at the top of the README with alt text
+## T37 · Plugin docs in English
+- Status: ✅ done · Priority: P2 · Created: 2026-10-01 · Updated: 2026-10-01
+- Instructions: 2026-10-01 the README and the other docs must be in English (French is not professional enough); switch everything to English.
+- Result: README.md translated to English (409 lines), outdated parts fixed (installed command names, shared-page exports, repository layout); everything else already English; no French left except the French login-button labels matched by browser-session.js
+  - 2026-10-01: yes, translate CLAUDE.md too; and the plugin must be able to adapt to the developer's language.
+- Result: CLAUDE.md translated (sub-agent, reviewed: same 1687 lines, 64 headings at the same lines, 41 code blocks, 43 checklist items; sections 4/11/38/57/63 compared); developer's language: settings language <code>|auto, SKILL.md rule, prompt-hook reminder, docs language rule, report interface in en/fr/es/de/pt; 6 tests

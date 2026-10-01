@@ -30,5 +30,6 @@ Reply with exactly this table, nothing else:
 | `/siska-lead-developer:tickets t2 done` | Change a ticket: `done`, `todo`, `progress`, `cancel`, `info`, `P1`–`P3`, or add instructions |
 | `t3 <text>` (plain message) | Add instructions to ticket T3 |
 | `/siska-lead-developer:settings gate off` | Turn the commit gate off/on (`gate on`), or the ledger (`ledger off`); `--global` for all projects; no argument = status |
+| `/siska-lead-developer:settings language fr` | Language the agent answers you in and writes reports in (`auto` = the language of your messages); code, database, docs and commits are always English |
 | `/siska-lead-developer:settings micro on` | Micro-task mode: every task split into 2–4 short micro-tasks, each announced, verified and reported before the next; sub-agent work validated before integration · `micro off` to stop |
 | `/siska-lead-developer:help` | This list |

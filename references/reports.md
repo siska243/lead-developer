@@ -3,7 +3,7 @@
 Every command result that is more than a few lines (audit-route, audit-package, check-code, optimize, document, a delivery review) is delivered **twice, with the same facts**:
 
 1. **A visual report page**, built from `templates/report/report.html`:
-   - write the data JSON (`templates/report/README.md`); `scripts/page-scan.sh --report` already writes it for a page scan;
+   - write the data JSON (`templates/report/README.md`) in the developer's language, with `"lang"` set to it; `scripts/page-scan.sh --report` already writes the data for a page scan (add `lang` and translate its summary when the developer does not work in English);
    - `bash scripts/report.sh <data.json> --out <file.html>`;
    - the agent can publish a rich page (Claude Code: see `compat/claude-code.md`) → publish that file, private by default;
    - otherwise → `--standalone --out <project>/.siska/reports/<command>-<YYYYMMDD-HHMM>.html`, and check `.siska/reports/` is in the project's `.gitignore` (add the line and say so).

@@ -6,7 +6,7 @@
 - **Nothing invented**: every route, field, rule, role, screen and message comes from the code. Not verifiable → write "to confirm" and ask.
 - **Reuse what exists**: the project's docs folder, format and tools (docs site, OpenAPI file, Swagger UI, wiki). Never a second documentation system.
 - **Human writing**: plain, specific, short sentences; the reader's vocabulary; no filler, no promotional or AI-sounding wording. Apply a humanizer skill/tool when available.
-- **Same language** as the existing docs (otherwise the user's language).
+- **English, always**: every document written in the project (feature pages, API docs, data model, README, OpenAPI descriptions, doc comments) is in English, whatever the developer's language. Existing non-English docs are not rewritten without a ticket; new and changed pages are in English. The conversation and the visual reports follow the developer's language (`language` setting); project files never do.
 - Changed feature → update its page; removed feature → remove or mark its page.
 
 ## Feature page
