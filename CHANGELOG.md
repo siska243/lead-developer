@@ -2,12 +2,17 @@
 
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), versions: [SemVer](https://semver.org/).
 
-## [1.13.0] - 2026-09-30
+## [1.14.0] - 2026-10-01
 ### Added
 - English in the project, the developer's language in the conversation: code, identifiers, tables, columns, migrations, comments, docs and commit messages are always English with the stack's senior conventions; user-facing text goes through the product's i18n with English keys; existing non-English names are never renamed silently (separate ticket, compatible migration). `settings language <code>|auto` (default `auto`) sets the language of answers and visual reports; Claude Code reminds it from the prompt hook, other agents read the setting. Visual reports translate their interface words (en, fr, es, de, pt) from `"lang"`.
 - `CLAUDE.md` (the project specification) translated to English.
 - Micro-task mode, off by default: `settings micro on|off` (project or `--global`). Non-trivial tasks are split into 2–4 micro-tasks with one verifiable result each, announced, verified (tests, lint, diff) and reported one by one; sub-agent work follows a contract and is read and re-checked before it is integrated; tracked as `T<n>.1`… (`references/microtasks.md`). Claude Code: reminder injected by the prompt hook, even with the ledger off; other agents read the setting.
 - API docs like API Platform: `api-docs.sh` builds the page from `templates/api-docs/page.html` – a bar in the project's colours (brand colour read from the front end's CSS variables, `tailwind.config` or `theme-color`, or `--brand-color`; `--logo`, `--font`; dark variant derived with `color-mix`) and exports (Postman collection, Postman environment, OpenAPI; copy on shared pages) above the Scalar reference themed with the same accent. `--spec-url` loads the live spec served by the app's generator; `*.postman_environment.json` and `openapi.json` are written next to the page. Colour, font and URL inputs are validated. On a shared page the exports use the viewer's download capability when offered, else copy the file; the page stays usable (exports) if the reference library cannot load.
+### Fixed
+- The plugin version is checked against this changelog by the test suite, so every release gets its own number and installed copies update.
+
+## [1.13.0] - 2026-09-30
+### Added
 - Interactive data model explorer: `data-model.sh --html` (file to open) and `--artifact` (page to share), from `templates/data-model/explorer.html` (Cytoscape.js, pinned). Zoom, pan, rotate, fit, search a table or a column, table sheet (columns, type, null, default, keys, indexes, relations both ways, clickable), focus on neighbours (1 or 2 levels, or only them), layouts, draggable tables, deep link `#table`, colour per domain, foreign keys without index dashed, "Issues only" filter, keyboard shortcuts, light/dark, phone width. Checked on a 229-table PostgreSQL schema (layout in about 2 s).
 
 ## [1.12.0] - 2026-09-30

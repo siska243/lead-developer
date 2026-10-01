@@ -15,3 +15,6 @@ npx shellcheck -x -P scripts scripts/*.sh tests/*.sh
 cd templates/mcp/server && npm install && npm test
 ```
 Update `CHANGELOG.md`. One branch per change (`feature/…`, `fix/…`, `docs/…`), conventional commits describing the technical change.
+
+## Releases
+Every change that reaches `main` ships under a **new version number**: installed plugins only update when the number changes, so a second release under the same number never reaches users. Bump `version` in `.claude-plugin/plugin.json`, add the matching `## [x.y.z] - date` entry at the top of `CHANGELOG.md` and the same `SISKA_REF` in `templates/ci/`; the test suite fails when they disagree. After the merge, tag the release (`git tag vX.Y.Z origin/main && git push origin vX.Y.Z`): the CI templates clone that tag.

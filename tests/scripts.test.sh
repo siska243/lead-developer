@@ -19,6 +19,12 @@ assert_status() { # name expected actual
   if [ "$2" = "$3" ]; then echo "ok   $1"; else echo "FAIL $1: exit $3, expected $2"; FAILS=$((FAILS + 1)); fi
 }
 
+# --- release: the plugin version is the latest changelog entry (installed copies only update on a new number) ---
+pv="$(sed -n 's/.*"version": *"\([^"]*\)".*/\1/p' "$REPO/.claude-plugin/plugin.json" | head -n 1)"
+cv="$(sed -n 's/^## \[\([0-9][^]]*\)\].*/\1/p' "$REPO/CHANGELOG.md" | head -n 1)"
+check "plugin.json version ($pv) matches the latest CHANGELOG entry ($cv)" test "$pv" = "$cv"
+check "CI templates pin the current release" grep -q "SISKA_REF: v$pv" "$REPO/templates/ci/github-actions.yml"
+
 # --- detect-stack: monorepo fixture ---
 P="$TMP/app"
 mkdir -p "$P/backend" "$P/mobile" "$P/api/node_modules/dep" "$P/.github/workflows"
